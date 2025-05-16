@@ -34,7 +34,7 @@ const formSchema = z.object({
   agency: z.string().min(1, {
     message: "Agency or brokerage name is required.",
   }),
-  years_experience: z.string().transform(Number).refine((n) => n >= 0, {
+  years_experience: z.coerce.number().min(0, {
     message: "Years of experience must be a positive number.",
   }),
   bio: z.string().optional(),
@@ -53,7 +53,7 @@ const OnboardAgent = () => {
     defaultValues: {
       license_number: "",
       agency: "",
-      years_experience: "0",
+      years_experience: 0,
       bio: "",
     },
   });

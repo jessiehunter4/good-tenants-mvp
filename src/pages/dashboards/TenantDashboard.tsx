@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,20 +30,20 @@ interface TenantProfile {
 
 interface Invitation {
   id: string;
-  message: string;
-  status: string;
+  message: string | null;
+  status: string | null;
   created_at: string;
   sender: {
     email: string;
     role: string;
-  } | null;
+  } | null | any; // Changed to accommodate potential error format
   listing: {
-    address: string;
-    city: string;
-    bedrooms: number;
-    bathrooms: number;
-    price: number;
-  } | null;
+    address: string | null;
+    city: string | null;
+    bedrooms: number | null;
+    bathrooms: number | null;
+    price: number | null;
+  } | null | any; // Changed to accommodate potential error format
 }
 
 const profileStatusMap = {
@@ -100,14 +99,16 @@ const TenantDashboard = () => {
           .from("invites")
           .select(`
             *,
-            sender:sender_id(email, role),
-            listing:listing_id(address, city, bedrooms, bathrooms, price)
+            sender:users!invites_sender_id_fkey(email, role),
+            listing:listings!invites_listing_id_fkey(address, city, bedrooms, bathrooms, price)
           `)
           .eq("tenant_id", user.id)
           .order("created_at", { ascending: false });
 
         if (invitationsError) throw invitationsError;
-        setInvitations(invitationsData as Invitation[]);
+        
+        // Type casting to handle potential mismatch
+        setInvitations(invitationsData as unknown as Invitation[]);
       } catch (error) {
         console.error("Error fetching tenant data:", error);
         toast({
@@ -232,18 +233,18 @@ const TenantDashboard = () => {
                         <CardHeader>
                           <div className="flex justify-between items-center">
                             <CardTitle className="text-lg">
-                              {invite.listing?.address}, {invite.listing?.city}
+                              {invite.listing?.address || 'Address not available'}, {invite.listing?.city || 'City not available'}
                             </CardTitle>
                             <Badge className={
                               invite.status === 'pending' ? 'bg-yellow-500' : 
                               invite.status === 'accepted' ? 'bg-green-500' : 
                               'bg-gray-500'
                             }>
-                              {invite.status.charAt(0).toUpperCase() + invite.status.slice(1)}
+                              {(invite.status || 'pending').charAt(0).toUpperCase() + (invite.status || 'pending').slice(1)}
                             </Badge>
                           </div>
                           <CardDescription>
-                            From: {invite.sender?.email} ({invite.sender?.role})
+                            From: {invite.sender?.email || 'Unknown sender'} ({invite.sender?.role || 'unknown role'})
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -251,15 +252,15 @@ const TenantDashboard = () => {
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <span className="text-sm text-gray-500">Bedrooms</span>
-                                <p>{invite.listing?.bedrooms}</p>
+                                <p>{invite.listing?.bedrooms || 'N/A'}</p>
                               </div>
                               <div>
                                 <span className="text-sm text-gray-500">Bathrooms</span>
-                                <p>{invite.listing?.bathrooms}</p>
+                                <p>{invite.listing?.bathrooms || 'N/A'}</p>
                               </div>
                               <div>
                                 <span className="text-sm text-gray-500">Price</span>
-                                <p>${invite.listing?.price?.toLocaleString()}/month</p>
+                                <p>${invite.listing?.price?.toLocaleString() || 'N/A'}/month</p>
                               </div>
                               <div>
                                 <span className="text-sm text-gray-500">Date Received</span>

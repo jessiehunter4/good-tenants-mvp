@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -137,7 +136,7 @@ const AdminDashboard = () => {
         });
 
         // Fetch profile stats
-        const fetchProfileStats = async (table: string, role: keyof ProfileStats) => {
+        const fetchProfileStats = async (table: "tenant_profiles" | "realtor_profiles" | "landlord_profiles", role: keyof ProfileStats) => {
           const { data, error } = await supabase
             .from(table)
             .select("status");

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,10 +40,10 @@ const formSchema = z.object({
   move_in_date: z.date({
     required_error: "Please select your preferred move-in date.",
   }),
-  household_size: z.string().transform(Number).refine((n) => n > 0, {
+  household_size: z.coerce.number().min(1, {
     message: "Household size must be at least 1.",
   }),
-  household_income: z.string().transform(Number).refine((n) => n >= 0, {
+  household_income: z.coerce.number().min(0, {
     message: "Income must be a positive number.",
   }),
   pets: z.boolean().default(false),
@@ -63,8 +62,8 @@ const OnboardTenant = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      household_size: "1",
-      household_income: "0",
+      household_size: 1,
+      household_income: 0,
       pets: false,
       preferred_locations: "",
       bio: "",
@@ -89,11 +88,14 @@ const OnboardTenant = () => {
         ? values.preferred_locations.split(",").map(location => location.trim())
         : [];
 
+      // Format date to string for Supabase
+      const formattedDate = format(values.move_in_date, 'yyyy-MM-dd');
+
       // Update the tenant profile
       const { error } = await supabase
         .from("tenant_profiles")
         .update({
-          move_in_date: values.move_in_date,
+          move_in_date: formattedDate,
           household_size: values.household_size,
           household_income: values.household_income,
           pets: values.pets,

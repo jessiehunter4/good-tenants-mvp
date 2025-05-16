@@ -29,13 +29,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
-  property_count: z.string().transform(Number).refine((n) => n > 0, {
+  property_count: z.coerce.number().min(1, {
     message: "Number of properties must be at least 1.",
   }),
-  years_experience: z.string().transform(Number).refine((n) => n >= 0, {
+  years_experience: z.coerce.number().min(0, {
     message: "Years of experience must be a positive number.",
   }),
-  management_type: z.enum(["self_managed", "property_manager"], {
+  management_type: z.enum(["self", "company", "hybrid"], {
     required_error: "Please select how you manage your properties.",
   }),
   preferred_tenant_criteria: z.string().optional(),
@@ -53,9 +53,9 @@ const OnboardLandlord = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      property_count: "1",
-      years_experience: "0",
-      management_type: "self_managed",
+      property_count: 1,
+      years_experience: 0,
+      management_type: "self",
       preferred_tenant_criteria: "",
       bio: "",
     },
@@ -170,7 +170,7 @@ const OnboardLandlord = () => {
                       >
                         <FormItem className="flex items-center space-x-3 space-y-0">
                           <FormControl>
-                            <RadioGroupItem value="self_managed" />
+                            <RadioGroupItem value="self" />
                           </FormControl>
                           <FormLabel className="font-normal">
                             Self-managed properties
@@ -178,10 +178,18 @@ const OnboardLandlord = () => {
                         </FormItem>
                         <FormItem className="flex items-center space-x-3 space-y-0">
                           <FormControl>
-                            <RadioGroupItem value="property_manager" />
+                            <RadioGroupItem value="company" />
                           </FormControl>
                           <FormLabel className="font-normal">
-                            I use a property manager
+                            I use a property management company
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="hybrid" />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            Hybrid approach (some self-managed, some with a company)
                           </FormLabel>
                         </FormItem>
                       </RadioGroup>
