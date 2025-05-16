@@ -1,5 +1,5 @@
 
-import { Button } from "@/components/ui/button";
+import DashboardHeader from "@/components/shared/DashboardHeader";
 
 interface LandlordHeaderProps {
   email: string | undefined;
@@ -8,17 +8,11 @@ interface LandlordHeaderProps {
 
 const LandlordHeader = ({ email, onSignOut }: LandlordHeaderProps) => {
   return (
-    <header className="bg-white shadow">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-blue-900">Good Tenants</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-gray-600">{email}</span>
-          <Button variant="outline" onClick={onSignOut}>
-            Sign Out
-          </Button>
-        </div>
-      </div>
-    </header>
+    <DashboardHeader 
+      email={email}
+      onSignOut={onSignOut}
+      role="landlord"
+    />
   );
 };
 
