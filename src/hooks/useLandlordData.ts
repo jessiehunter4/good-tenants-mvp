@@ -5,8 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { LandlordProfile, TenantProfile } from "@/types/profiles";
 import { Listing } from "@/types/listings";
-import { filterTenantsByQuery, sendInviteToTenant } from "@/utils/tenantUtils";
-import { triggerWebhook } from "@/utils/webhooks";
+import { filterTenantsByQuery } from "@/utils/filters/tenantFilters";
+import { sendInviteToTenant } from "@/utils/invitations/inviteService";
 
 // Re-export types for backward compatibility
 export type { LandlordProfile, TenantProfile, Listing };
@@ -107,8 +107,7 @@ export const useLandlordData = () => {
       return;
     }
 
-    // Pass just the toast function instead of the whole useToast return value
-    await sendInviteToTenant(tenantId, user.id, listingId, triggerWebhook, toast);
+    await sendInviteToTenant(tenantId, user.id, listingId, toast);
   };
 
   // Filter tenants based on search query
