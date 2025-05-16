@@ -72,14 +72,14 @@ const OnboardTenant = () => {
       name: "move_in_date",
       label: "Expected Move-In Date",
       description: "When are you looking to move in?",
-      component: "custom" as const, // Using 'as const' to ensure literal type
-      customComponent: (
-        <ProfileForm.DatePicker
-          description="When are you looking to move in?"
-          minDate={new Date()}
-          maxDate={new Date(new Date().setFullYear(new Date().getFullYear() + 1))}
-        />
-      ),
+      component: "custom" as const,
+      // Pass an empty function for field since it will be provided by FormField 
+      customComponent: <ProfileForm.DatePicker 
+        description="When are you looking to move in?"
+        minDate={new Date()}
+        maxDate={new Date(new Date().setFullYear(new Date().getFullYear() + 1))}
+        field={{}} // This empty object will be replaced by the actual field from FormField
+      />,
     },
     {
       name: "household_size",
@@ -99,8 +99,11 @@ const OnboardTenant = () => {
       name: "pets",
       label: "I have pets",
       description: "Check this box if you have pets that will be living with you.",
-      component: "custom" as const, // Using 'as const' to ensure literal type
-      customComponent: <ProfileForm.Checkbox label="I have pets" />,
+      component: "custom" as const,
+      customComponent: <ProfileForm.Checkbox 
+        label="I have pets" 
+        field={{}} // This empty object will be replaced by the actual field from FormField
+      />,
     },
     {
       name: "preferred_locations",
@@ -112,7 +115,7 @@ const OnboardTenant = () => {
       name: "bio",
       label: "About You",
       description: "Brief description about yourself (occupation, lifestyle, etc.)",
-      component: "textarea" as const, // Using 'as const' to ensure literal type
+      component: "textarea" as const,
       placeholder: "Tell us a bit about yourself and what you're looking for...",
     },
   ];
