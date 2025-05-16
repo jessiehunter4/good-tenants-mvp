@@ -3,44 +3,13 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { LandlordProfile, TenantProfile } from "@/types/profiles";
+import { Listing } from "@/types/listings";
+import { filterTenantsByQuery, sendInviteToTenant } from "@/utils/tenantUtils";
+import { triggerWebhook } from "@/utils/webhooks";
 
-export interface LandlordProfile {
-  id: string;
-  status: string;
-  bio: string | null;
-  property_count: number | null;
-  years_experience: number | null;
-  is_verified: boolean | null;
-  management_type: string | null;
-  preferred_tenant_criteria: string | null;
-}
-
-export interface Listing {
-  id: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  bedrooms: number;
-  bathrooms: number;
-  square_feet: number;
-  price: number;
-  available_date: string;
-  is_active: boolean;
-}
-
-export interface TenantProfile {
-  id: string;
-  user_email: string;
-  status: string;
-  move_in_date: string | null;
-  household_size: number | null;
-  household_income: number | null;
-  pets: boolean | null;
-  preferred_locations: string[] | null;
-  bio: string | null;
-  is_pre_screened: boolean | null;
-}
+// Re-export types for backward compatibility
+export type { LandlordProfile, TenantProfile, Listing };
 
 export const useLandlordData = () => {
   const { user, signOut } = useAuth();
@@ -114,41 +83,7 @@ export const useLandlordData = () => {
     fetchLandlordData();
   }, [user, toast]);
 
-  // Filter tenants based on search query
-  const filteredTenants = tenants.filter(tenant => {
-    if (!searchQuery) return true;
-    
-    const query = searchQuery.toLowerCase();
-    return (
-      tenant.user_email?.toLowerCase().includes(query) ||
-      tenant.preferred_locations?.some(location => location.toLowerCase().includes(query)) ||
-      (tenant.bio && tenant.bio.toLowerCase().includes(query))
-    );
-  });
-
-  // Function to trigger Make.com webhook
-  const triggerWebhook = async (payload: any) => {
-    try {
-      const webhookUrl = "https://hook.make.com/example-webhook-id";
-      
-      const response = await fetch(webhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-        mode: "no-cors", // Handle CORS issues
-      });
-      
-      console.log("Webhook triggered successfully");
-      return true;
-    } catch (error) {
-      console.error("Error triggering webhook:", error);
-      return false;
-    }
-  };
-
-  // Function to send invitation to tenant
+  // Handle sending invitation to tenant
   const handleSendInvite = async (tenantId: string) => {
     if (!user || listings.length === 0) {
       toast({
@@ -159,58 +94,24 @@ export const useLandlordData = () => {
       return;
     }
 
-    try {
-      // In a real app, you would show a modal to select which listing to invite to
-      // For now, we'll use the first listing if available
-      const listingId = listings[0]?.id;
-      
-      if (!listingId) {
-        toast({
-          title: "No listings available",
-          description: "Please create a listing first.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // 1. Create invite record in the database
-      const { data: invite, error } = await supabase
-        .from("invites")
-        .insert({
-          tenant_id: tenantId,
-          sender_id: user.id,
-          listing_id: listingId,
-          message: "I'd like to invite you to view this property.",
-          status: "pending"
-        })
-        .select('id')
-        .single();
-
-      if (error) throw error;
-      
-      // 2. Trigger Make.com webhook with required payload
-      const webhookPayload = {
-        tenant_id: tenantId,
-        sender_id: user.id,
-        listing_id: listingId,
-        timestamp: new Date().toISOString()
-      };
-      
-      await triggerWebhook(webhookPayload);
-
+    // In a real app, you would show a modal to select which listing to invite to
+    // For now, we'll use the first listing if available
+    const listingId = listings[0]?.id;
+    
+    if (!listingId) {
       toast({
-        title: "Invitation sent!",
-        description: "We'll notify the tenant right away.",
-      });
-    } catch (error) {
-      console.error("Error sending invitation:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send invitation.",
+        title: "No listings available",
+        description: "Please create a listing first.",
         variant: "destructive",
       });
+      return;
     }
+
+    await sendInviteToTenant(tenantId, user.id, listingId, triggerWebhook, { toast });
   };
+
+  // Filter tenants based on search query
+  const filteredTenants = filterTenantsByQuery(tenants, searchQuery);
 
   return {
     user,
