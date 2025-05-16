@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LandlordHeader from "@/components/landlord/LandlordHeader";
 import ProfileSummary from "@/components/landlord/ProfileSummary";
 import ListingsSection from "@/components/landlord/ListingsSection";
-import TenantDirectory from "@/components/landlord/TenantDirectory";
+import TenantDirectory from "@/components/landlord/tenant-directory";
 import { useLandlordData } from "@/hooks/useLandlordData";
 
 const LandlordDashboard = () => {
