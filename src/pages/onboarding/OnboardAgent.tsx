@@ -31,17 +31,19 @@ const OnboardAgent = () => {
 
     // Use the executeOperation function from useDataOperation for consistent error handling
     await executeOperation(
-      () => supabase
-        .from("realtor_profiles")
-        .update({
-          license_number: values.license_number,
-          agency: values.agency,
-          years_experience: values.years_experience,
-          bio: values.bio || "",
-          status: "basic", // Update status to basic after completing onboarding
-        })
-        .eq("id", user.id)
-        .then(result => result), // Add .then() to properly return a Promise
+      async () => {
+        const result = await supabase
+          .from("realtor_profiles")
+          .update({
+            license_number: values.license_number,
+            agency: values.agency,
+            years_experience: values.years_experience,
+            bio: values.bio || "",
+            status: "basic", // Update status to basic after completing onboarding
+          })
+          .eq("id", user.id);
+        return result;
+      },
       {
         successMessage: "Your agent profile has been created successfully.",
         errorMessage: "There was a problem updating your profile. Please try again.",
@@ -74,7 +76,7 @@ const OnboardAgent = () => {
       name: "bio",
       label: "Professional Bio",
       description: "Brief professional description, areas of expertise, etc.",
-      component: "textarea", // Fixed: Use literal "textarea" instead of string variable
+      component: "textarea",
       placeholder: "Tell us about your experience and specialties...",
     },
   ];

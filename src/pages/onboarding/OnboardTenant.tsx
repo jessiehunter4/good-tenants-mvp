@@ -42,19 +42,21 @@ const OnboardTenant = () => {
 
     // Use the executeOperation function from useDataOperation for consistent error handling
     await executeOperation(
-      () => supabase
-        .from("tenant_profiles")
-        .update({
-          move_in_date: formattedDate,
-          household_size: values.household_size,
-          household_income: values.household_income,
-          pets: values.pets,
-          preferred_locations: locationsArray,
-          bio: values.bio || "",
-          status: "basic", // Update status after completing onboarding
-        })
-        .eq("id", user.id)
-        .then(result => result), // Add .then() to properly return a Promise
+      async () => {
+        const result = await supabase
+          .from("tenant_profiles")
+          .update({
+            move_in_date: formattedDate,
+            household_size: values.household_size,
+            household_income: values.household_income,
+            pets: values.pets,
+            preferred_locations: locationsArray,
+            bio: values.bio || "",
+            status: "basic", // Update status after completing onboarding
+          })
+          .eq("id", user.id);
+        return result;
+      },
       {
         successMessage: "Your tenant profile has been created successfully.",
         errorMessage: "There was a problem updating your profile. Please try again.",
@@ -70,7 +72,6 @@ const OnboardTenant = () => {
       label: "Expected Move-In Date",
       description: "When are you looking to move in?",
       component: "custom",
-      // Use a function to provide the field to the component instead of hardcoding it
       customComponent: (
         <ProfileForm.DatePicker
           description="When are you looking to move in?"

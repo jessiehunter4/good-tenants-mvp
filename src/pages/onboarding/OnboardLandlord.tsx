@@ -32,18 +32,20 @@ const OnboardLandlord = () => {
 
     // Use the executeOperation function from useDataOperation for consistent error handling
     await executeOperation(
-      () => supabase
-        .from("landlord_profiles")
-        .update({
-          property_count: values.property_count,
-          years_experience: values.years_experience,
-          management_type: values.management_type,
-          preferred_tenant_criteria: values.preferred_tenant_criteria || "",
-          bio: values.bio || "",
-          status: "basic", // Update status to basic after completing onboarding
-        })
-        .eq("id", user.id)
-        .then(result => result), // Add .then() to properly return a Promise
+      async () => {
+        const result = await supabase
+          .from("landlord_profiles")
+          .update({
+            property_count: values.property_count,
+            years_experience: values.years_experience,
+            management_type: values.management_type,
+            preferred_tenant_criteria: values.preferred_tenant_criteria || "",
+            bio: values.bio || "",
+            status: "basic", // Update status to basic after completing onboarding
+          })
+          .eq("id", user.id);
+        return result;
+      },
       {
         successMessage: "Your landlord profile has been created successfully.",
         errorMessage: "There was a problem updating your profile. Please try again.",
