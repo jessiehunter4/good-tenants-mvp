@@ -11,14 +11,33 @@ import { TenantProfile } from "@/hooks/useAgentData";
 interface TenantDirectoryProps {
   tenants: TenantProfile[];
   profileStatus: string;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
   onSendInvite: (tenantId: string) => void;
 }
 
-const TenantDirectory = ({ tenants, profileStatus, onSendInvite }: TenantDirectoryProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
-
+const TenantDirectory = ({ 
+  tenants, 
+  profileStatus, 
+  searchQuery = "", 
+  onSearchChange, 
+  onSendInvite 
+}: TenantDirectoryProps) => {
+  
+  // Local state if parent doesn't provide search functionality
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
+  const effectiveSearchQuery = onSearchChange ? searchQuery : localSearchQuery;
+  
+  const handleSearchChange = (value: string) => {
+    if (onSearchChange) {
+      onSearchChange(value);
+    } else {
+      setLocalSearchQuery(value);
+    }
+  };
+  
   const filteredTenants = tenants.filter(tenant => {
-    const query = searchQuery.toLowerCase();
+    const query = effectiveSearchQuery.toLowerCase();
     return (
       tenant.user_email?.toLowerCase().includes(query) ||
       tenant.preferred_locations?.some(location => location.toLowerCase().includes(query)) ||
@@ -46,8 +65,8 @@ const TenantDirectory = ({ tenants, profileStatus, onSendInvite }: TenantDirecto
           <Input
             placeholder="Search by location, email, or description..."
             className="pl-10"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={effectiveSearchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
       </CardHeader>
@@ -108,7 +127,7 @@ const TenantDirectory = ({ tenants, profileStatus, onSendInvite }: TenantDirecto
                       className="w-full" 
                       onClick={() => onSendInvite(tenant.id)}
                     >
-                      Send Invitation
+                      Invite to Property
                     </Button>
                   </CardFooter>
                 </Card>

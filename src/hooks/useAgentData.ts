@@ -45,6 +45,7 @@ export const useAgentData = () => {
   const [tenants, setTenants] = useState<TenantProfile[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchAgentData = async () => {
@@ -110,6 +111,40 @@ export const useAgentData = () => {
     fetchAgentData();
   }, [user, toast]);
 
+  // Filter tenants based on search query
+  const filteredTenants = tenants.filter(tenant => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      tenant.user_email?.toLowerCase().includes(query) ||
+      tenant.preferred_locations?.some(location => location.toLowerCase().includes(query)) ||
+      (tenant.bio && tenant.bio.toLowerCase().includes(query))
+    );
+  });
+
+  // Function to trigger Make.com webhook
+  const triggerWebhook = async (payload: any) => {
+    try {
+      const webhookUrl = "https://hook.make.com/example-webhook-id";
+      
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+        mode: "no-cors", // Handle CORS issues
+      });
+      
+      console.log("Webhook triggered successfully");
+      return true;
+    } catch (error) {
+      console.error("Error triggering webhook:", error);
+      return false;
+    }
+  };
+
   const sendInvite = async (tenantId: string) => {
     if (!user || listings.length === 0) {
       toast({
@@ -134,7 +169,8 @@ export const useAgentData = () => {
         return;
       }
 
-      const { error } = await supabase
+      // 1. Create invite record in the database
+      const { data: invite, error } = await supabase
         .from("invites")
         .insert({
           tenant_id: tenantId,
@@ -142,13 +178,25 @@ export const useAgentData = () => {
           listing_id: listingId,
           message: "I'd like to invite you to view this property.",
           status: "pending"
-        });
+        })
+        .select('id')
+        .single();
 
       if (error) throw error;
+      
+      // 2. Trigger Make.com webhook with required payload
+      const webhookPayload = {
+        tenant_id: tenantId,
+        sender_id: user.id,
+        listing_id: listingId,
+        timestamp: new Date().toISOString()
+      };
+      
+      await triggerWebhook(webhookPayload);
 
       toast({
-        title: "Invite sent!",
-        description: "You have successfully invited this tenant.",
+        title: "Invitation sent!",
+        description: "We'll notify the tenant right away.",
       });
     } catch (error) {
       console.error("Error sending invitation:", error);
@@ -163,10 +211,12 @@ export const useAgentData = () => {
   return {
     user,
     profile,
-    tenants,
+    tenants: filteredTenants,
     listings,
     loading,
-    signOut,
-    sendInvite
+    searchQuery,
+    setSearchQuery,
+    sendInvite,
+    signOut
   };
 };

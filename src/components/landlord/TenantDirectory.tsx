@@ -1,9 +1,8 @@
 
-import { User } from "lucide-react";
+import { User, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -13,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { TenantProfile } from "@/hooks/useLandlordData";
+import EmptyState from "@/components/tenant/EmptyState";
 
 interface TenantDirectoryProps {
   tenants: TenantProfile[];
@@ -112,36 +112,26 @@ const TenantDirectory = ({
                       className="w-full" 
                       onClick={() => onSendInvite(tenant.id)}
                     >
-                      Send Invitation
+                      Invite to Property
                     </Button>
                   </CardFooter>
                 </Card>
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                <User className="h-6 w-6 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No tenants found</h3>
-              <p className="text-gray-500">
-                No verified tenants match your search criteria.
-              </p>
-            </div>
+            <EmptyState
+              icon={<User className="h-6 w-6 text-gray-400" />}
+              title="No tenants found"
+              description="No verified tenants match your search criteria."
+            />
           )
         ) : (
-          <div className="text-center py-12">
-            <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-              <User className="h-6 w-6 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">Verification Required</h3>
-            <p className="text-gray-500 mb-4">
-              You need to be verified to access the tenant directory.
-            </p>
-            <Button>
-              Get Verified
-            </Button>
-          </div>
+          <EmptyState
+            icon={<User className="h-6 w-6 text-gray-400" />}
+            title="Verification Required"
+            description="You need to be verified to access the tenant directory."
+            action={<Button>Get Verified</Button>}
+          />
         )}
       </CardContent>
     </Card>

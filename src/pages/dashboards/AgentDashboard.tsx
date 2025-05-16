@@ -12,9 +12,11 @@ const AgentDashboard = () => {
     profile, 
     tenants, 
     listings, 
-    loading, 
-    signOut,
-    sendInvite
+    loading,
+    searchQuery,
+    setSearchQuery,
+    sendInvite,
+    signOut 
   } = useAgentData();
 
   if (loading) {
@@ -35,14 +37,16 @@ const AgentDashboard = () => {
         <Tabs defaultValue="tenants">
           <TabsList className="mb-4">
             <TabsTrigger value="tenants">Find Tenants</TabsTrigger>
-            <TabsTrigger value="listings">My Listings</TabsTrigger>
+            <TabsTrigger value="listings">My Properties</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tenants">
             <TenantDirectory 
-              tenants={tenants} 
-              profileStatus={profile?.status || 'incomplete'} 
-              onSendInvite={sendInvite} 
+              tenants={tenants}
+              profileStatus={profile?.status || 'incomplete'}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onSendInvite={sendInvite}
             />
           </TabsContent>
 
