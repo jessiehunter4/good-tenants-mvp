@@ -9,16 +9,266 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      invites: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string | null
+          message: string | null
+          sender_id: string | null
+          status: string | null
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          message?: string | null
+          sender_id?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string | null
+          message?: string | null
+          sender_id?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invites_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      landlord_profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          id: string
+          is_verified: boolean | null
+          management_type: Database["public"]["Enums"]["management_type"] | null
+          preferred_tenant_criteria: string | null
+          property_count: number | null
+          status: Database["public"]["Enums"]["profile_status"]
+          updated_at: string
+          verification_documents: string[] | null
+          years_experience: number | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          id: string
+          is_verified?: boolean | null
+          management_type?:
+            | Database["public"]["Enums"]["management_type"]
+            | null
+          preferred_tenant_criteria?: string | null
+          property_count?: number | null
+          status?: Database["public"]["Enums"]["profile_status"]
+          updated_at?: string
+          verification_documents?: string[] | null
+          years_experience?: number | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          id?: string
+          is_verified?: boolean | null
+          management_type?:
+            | Database["public"]["Enums"]["management_type"]
+            | null
+          preferred_tenant_criteria?: string | null
+          property_count?: number | null
+          status?: Database["public"]["Enums"]["profile_status"]
+          updated_at?: string
+          verification_documents?: string[] | null
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
+      listings: {
+        Row: {
+          address: string | null
+          available_date: string | null
+          bathrooms: number | null
+          bedrooms: number | null
+          city: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          owner_id: string
+          price: number | null
+          square_feet: number | null
+          state: string | null
+          updated_at: string
+          zip: string | null
+        }
+        Insert: {
+          address?: string | null
+          available_date?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          owner_id: string
+          price?: number | null
+          square_feet?: number | null
+          state?: string | null
+          updated_at?: string
+          zip?: string | null
+        }
+        Update: {
+          address?: string | null
+          available_date?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          owner_id?: string
+          price?: number | null
+          square_feet?: number | null
+          state?: string | null
+          updated_at?: string
+          zip?: string | null
+        }
+        Relationships: []
+      }
+      realtor_profiles: {
+        Row: {
+          agency: string | null
+          bio: string | null
+          created_at: string
+          id: string
+          is_verified: boolean | null
+          license_number: string | null
+          specialties: string[] | null
+          status: Database["public"]["Enums"]["profile_status"]
+          updated_at: string
+          verification_documents: string[] | null
+          years_experience: number | null
+        }
+        Insert: {
+          agency?: string | null
+          bio?: string | null
+          created_at?: string
+          id: string
+          is_verified?: boolean | null
+          license_number?: string | null
+          specialties?: string[] | null
+          status?: Database["public"]["Enums"]["profile_status"]
+          updated_at?: string
+          verification_documents?: string[] | null
+          years_experience?: number | null
+        }
+        Update: {
+          agency?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          is_verified?: boolean | null
+          license_number?: string | null
+          specialties?: string[] | null
+          status?: Database["public"]["Enums"]["profile_status"]
+          updated_at?: string
+          verification_documents?: string[] | null
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
+      tenant_profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          household_income: number | null
+          household_size: number | null
+          id: string
+          move_in_date: string | null
+          pets: boolean | null
+          preferred_locations: string[] | null
+          status: Database["public"]["Enums"]["profile_status"]
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          household_income?: number | null
+          household_size?: number | null
+          id: string
+          move_in_date?: string | null
+          pets?: boolean | null
+          preferred_locations?: string[] | null
+          status?: Database["public"]["Enums"]["profile_status"]
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          household_income?: number | null
+          household_size?: number | null
+          id?: string
+          move_in_date?: string | null
+          pets?: boolean | null
+          preferred_locations?: string[] | null
+          status?: Database["public"]["Enums"]["profile_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      management_type: "self" | "company" | "hybrid"
+      profile_status: "incomplete" | "basic" | "verified" | "premium"
+      user_role: "tenant" | "agent" | "landlord" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +383,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      management_type: ["self", "company", "hybrid"],
+      profile_status: ["incomplete", "basic", "verified", "premium"],
+      user_role: ["tenant", "agent", "landlord", "admin"],
+    },
   },
 } as const
