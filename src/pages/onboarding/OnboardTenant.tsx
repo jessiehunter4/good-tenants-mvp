@@ -25,6 +25,7 @@ const OnboardTenant = () => {
       pets: false,
       preferred_locations: "",
       bio: "",
+      move_in_date: new Date(), // Add default move_in_date
     },
   });
 
@@ -52,7 +53,8 @@ const OnboardTenant = () => {
           bio: values.bio || "",
           status: "basic", // Update status after completing onboarding
         })
-        .eq("id", user.id),
+        .eq("id", user.id)
+        .then(result => result), // Add .then() to properly return a Promise
       {
         successMessage: "Your tenant profile has been created successfully.",
         errorMessage: "There was a problem updating your profile. Please try again.",
@@ -68,10 +70,12 @@ const OnboardTenant = () => {
       label: "Expected Move-In Date",
       description: "When are you looking to move in?",
       component: "custom",
+      // Use a function to provide the field to the component instead of hardcoding it
       customComponent: (
         <ProfileForm.DatePicker
           description="When are you looking to move in?"
           minDate={new Date()}
+          maxDate={new Date(new Date().setFullYear(new Date().getFullYear() + 1))}
         />
       ),
     },

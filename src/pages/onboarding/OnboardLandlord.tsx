@@ -42,7 +42,8 @@ const OnboardLandlord = () => {
           bio: values.bio || "",
           status: "basic", // Update status to basic after completing onboarding
         })
-        .eq("id", user.id),
+        .eq("id", user.id)
+        .then(result => result), // Add .then() to properly return a Promise
       {
         successMessage: "Your landlord profile has been created successfully.",
         errorMessage: "There was a problem updating your profile. Please try again.",

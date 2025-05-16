@@ -52,7 +52,7 @@ interface ProfileFormProps {
   cancelButtonText?: string;
 }
 
-// Define custom sub-components
+// Fixed DatePicker to accept field prop correctly
 const DatePicker = ({ field, description, minDate, maxDate }) => (
   <>
     <Popover>
@@ -85,6 +85,7 @@ const DatePicker = ({ field, description, minDate, maxDate }) => (
             return false;
           }}
           initialFocus
+          className="pointer-events-auto"
         />
       </PopoverContent>
     </Popover>
@@ -92,6 +93,7 @@ const DatePicker = ({ field, description, minDate, maxDate }) => (
   </>
 );
 
+// Fixed CheckboxField to accept field prop correctly
 const CheckboxField = ({ field, label }) => (
   <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
     <FormControl>
@@ -168,7 +170,7 @@ const ProfileForm = ({
                             {...fieldProps}
                           />
                         ) : field.component === "custom" ? (
-                          field.customComponent
+                          React.cloneElement(field.customComponent as React.ReactElement, { field: fieldProps })
                         ) : (
                           <Input 
                             type={field.type || "text"} 

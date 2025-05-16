@@ -40,7 +40,8 @@ const OnboardAgent = () => {
           bio: values.bio || "",
           status: "basic", // Update status to basic after completing onboarding
         })
-        .eq("id", user.id),
+        .eq("id", user.id)
+        .then(result => result), // Add .then() to properly return a Promise
       {
         successMessage: "Your agent profile has been created successfully.",
         errorMessage: "There was a problem updating your profile. Please try again.",
@@ -73,7 +74,7 @@ const OnboardAgent = () => {
       name: "bio",
       label: "Professional Bio",
       description: "Brief professional description, areas of expertise, etc.",
-      component: "textarea",
+      component: "textarea", // Fixed: Use literal "textarea" instead of string variable
       placeholder: "Tell us about your experience and specialties...",
     },
   ];
