@@ -107,7 +107,8 @@ export const useLandlordData = () => {
       return;
     }
 
-    await sendInviteToTenant(tenantId, user.id, listingId, triggerWebhook, { toast });
+    // Pass just the toast function instead of the whole useToast return value
+    await sendInviteToTenant(tenantId, user.id, listingId, triggerWebhook, toast);
   };
 
   // Filter tenants based on search query

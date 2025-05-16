@@ -1,7 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { TenantProfile } from "@/types/profiles";
-import { useToast } from "@/components/ui/use-toast";
 
 /**
  * Filter tenants based on search query
@@ -19,13 +18,14 @@ export const filterTenantsByQuery = (tenants: TenantProfile[], searchQuery: stri
 
 /**
  * Send invitation to tenant
+ * Updated to accept just the toast function instead of the full useToast return value
  */
 export const sendInviteToTenant = async (
   tenantId: string, 
   userId: string, 
   listingId: string,
   triggerWebhook: (payload: any) => Promise<boolean>,
-  toast: ReturnType<typeof useToast>
+  toast: (props: { title: string; description: string; variant?: "default" | "destructive" }) => void
 ) => {
   try {
     // 1. Create invite record in the database
@@ -53,7 +53,7 @@ export const sendInviteToTenant = async (
     
     await triggerWebhook(webhookPayload);
 
-    toast.toast({
+    toast({
       title: "Invitation sent!",
       description: "We'll notify the tenant right away.",
     });
@@ -61,7 +61,7 @@ export const sendInviteToTenant = async (
     return true;
   } catch (error) {
     console.error("Error sending invitation:", error);
-    toast.toast({
+    toast({
       title: "Error",
       description: "Failed to send invitation.",
       variant: "destructive",
