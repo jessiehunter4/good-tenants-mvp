@@ -1,15 +1,14 @@
 
 import { Building, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import ListingCard from "@/components/shared/ListingCard";
 import { Listing } from "@/hooks/useLandlordData";
 
 interface ListingsSectionProps {
@@ -29,55 +28,23 @@ const ListingsSection = ({ listings }: ListingsSectionProps) => {
         {listings.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {listings.map((listing) => (
-              <Card key={listing.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{listing.address}</CardTitle>
-                      <CardDescription>
-                        {listing.city}, {listing.state} {listing.zip}
-                      </CardDescription>
-                    </div>
-                    <Badge className={listing.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100'}>
-                      {listing.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-3">
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <p className="text-sm text-gray-500">Bedrooms</p>
-                      <p className="font-medium">{listing.bedrooms}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Bathrooms</p>
-                      <p className="font-medium">{listing.bathrooms}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Square Feet</p>
-                      <p className="font-medium">{listing.square_feet.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Price</p>
-                      <p className="font-medium">${listing.price.toLocaleString()}/month</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Available</p>
-                      <p className="font-medium">{new Date(listing.available_date).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="border-t">
-                  <div className="flex w-full gap-2">
-                    <Button variant="outline" className="flex-1">
-                      Edit
-                    </Button>
-                    <Button variant="default" className="flex-1">
-                      Find Tenants
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
+              <ListingCard
+                key={listing.id}
+                id={listing.id}
+                address={listing.address}
+                city={listing.city}
+                state={listing.state}
+                zip={listing.zip}
+                bedrooms={listing.bedrooms}
+                bathrooms={listing.bathrooms}
+                square_feet={listing.square_feet}
+                price={listing.price}
+                available_date={listing.available_date}
+                is_active={listing.is_active}
+                onEdit={() => {}}
+                onFindTenants={() => {}}
+                actionText="Find Tenants"
+              />
             ))}
           </div>
         ) : (
