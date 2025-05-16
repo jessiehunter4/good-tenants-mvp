@@ -56,13 +56,13 @@ const Dashboard = () => {
 
           if (profileTable) {
             const { data: profileData, error: profileError } = await supabase
-              .from(profileTable)
+              .from(profileTable as "tenant_profiles" | "realtor_profiles" | "landlord_profiles")
               .select("status")
               .eq("id", user.id)
               .single();
 
             if (profileError) throw profileError;
-            if (profileData) {
+            if (profileData && profileData.status) {
               setProfileStatus(profileData.status);
               // Calculate approximate profile completion
               switch (profileData.status) {
