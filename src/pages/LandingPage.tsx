@@ -1,9 +1,17 @@
 
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { User, Briefcase, Building } from "lucide-react";
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+
+  const handleRoleSelect = (role: string) => {
+    setSelectedRole(role);
+    navigate(`/auth?role=${role}`);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -17,6 +25,54 @@ const LandingPage = () => {
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
               The best way to connect pre-screened tenants with quality housing
             </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+              <div 
+                className={`p-6 rounded-lg border-2 cursor-pointer transition-all ${
+                  selectedRole === "tenant" 
+                    ? "border-blue-500 bg-blue-50" 
+                    : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+                }`}
+                onClick={() => handleRoleSelect("tenant")}
+              >
+                <div className="flex flex-col items-center gap-4">
+                  <User size={48} className="text-blue-600" />
+                  <h3 className="text-xl font-semibold">I'm a Tenant</h3>
+                  <p className="text-gray-500 text-center">Looking for a quality home to rent</p>
+                </div>
+              </div>
+              
+              <div 
+                className={`p-6 rounded-lg border-2 cursor-pointer transition-all ${
+                  selectedRole === "agent" 
+                    ? "border-blue-500 bg-blue-50" 
+                    : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+                }`}
+                onClick={() => handleRoleSelect("agent")}
+              >
+                <div className="flex flex-col items-center gap-4">
+                  <Briefcase size={48} className="text-blue-600" />
+                  <h3 className="text-xl font-semibold">I'm a Realtor</h3>
+                  <p className="text-gray-500 text-center">Looking to place qualified tenants</p>
+                </div>
+              </div>
+              
+              <div 
+                className={`p-6 rounded-lg border-2 cursor-pointer transition-all ${
+                  selectedRole === "landlord" 
+                    ? "border-blue-500 bg-blue-50" 
+                    : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+                }`}
+                onClick={() => handleRoleSelect("landlord")}
+              >
+                <div className="flex flex-col items-center gap-4">
+                  <Building size={48} className="text-blue-600" />
+                  <h3 className="text-xl font-semibold">I'm a Landlord</h3>
+                  <p className="text-gray-500 text-center">Looking for reliable tenants</p>
+                </div>
+              </div>
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" onClick={() => navigate("/auth")}>
                 Get Started
@@ -52,7 +108,7 @@ const LandingPage = () => {
                   <span>Match faster with properties that fit your needs</span>
                 </li>
               </ul>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/auth")}>
+              <Button variant="outline" className="w-full" onClick={() => handleRoleSelect("tenant")}>
                 Sign Up as Tenant
               </Button>
             </div>
@@ -74,7 +130,7 @@ const LandingPage = () => {
                   <span>Lease your MLS listings faster</span>
                 </li>
               </ul>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/auth")}>
+              <Button variant="outline" className="w-full" onClick={() => handleRoleSelect("agent")}>
                 Sign Up as Agent
               </Button>
             </div>
@@ -96,7 +152,7 @@ const LandingPage = () => {
                   <span>Reduce vacancy times with qualified tenants</span>
                 </li>
               </ul>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/auth")}>
+              <Button variant="outline" className="w-full" onClick={() => handleRoleSelect("landlord")}>
                 Sign Up as Landlord
               </Button>
             </div>

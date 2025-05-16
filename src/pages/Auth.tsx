@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -45,14 +46,112 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 const Auth = () => {
   const { user, signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
 
+  // Get role from URL query params
+  const queryParams = new URLSearchParams(location.search);
+  const roleFromUrl = queryParams.get("role");
+
+  // Check if a user should be redirected to onboarding based on their role and profile status
+  const checkAndRedirectToOnboarding = async (userId: string, userRole: string) => {
+    try {
+      let profileTable = "";
+      
+      switch (userRole) {
+        case "tenant":
+          profileTable = "tenant_profiles";
+          break;
+        case "agent":
+          profileTable = "realtor_profiles";
+          break;
+        case "landlord":
+          profileTable = "landlord_profiles";
+          break;
+        case "admin":
+          navigate("/admin-dashboard");
+          return;
+        default:
+          break;
+      }
+
+      if (profileTable) {
+        const { data: profileData, error } = await supabase
+          .from(profileTable as "tenant_profiles" | "realtor_profiles" | "landlord_profiles")
+          .select("status")
+          .eq("id", userId)
+          .single();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+          // If there's an error, default to sending to onboarding
+          navigateToOnboarding(userRole);
+          return;
+        }
+
+        // If profile exists and status is not 'incomplete', redirect to dashboard
+        if (profileData && profileData.status && profileData.status !== "incomplete") {
+          navigate(`/dashboard-${userRole}`);
+        } else {
+          // If profile doesn't exist or is incomplete, redirect to onboarding
+          navigateToOnboarding(userRole);
+        }
+      } else {
+        // Default to dashboard if no specific role handling
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error("Error in redirect logic:", error);
+      navigate("/dashboard"); // Default fallback
+    }
+  };
+
+  // Navigate to the appropriate onboarding page
+  const navigateToOnboarding = (role: string) => {
+    switch (role) {
+      case "tenant":
+        navigate("/onboard-tenant");
+        break;
+      case "agent":
+        navigate("/onboard-agent");
+        break;
+      case "landlord":
+        navigate("/onboard-landlord");
+        break;
+      default:
+        navigate("/dashboard");
+        break;
+    }
+  };
+
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      // Get user role from Supabase
+      const getUserRoleAndRedirect = async () => {
+        try {
+          const { data, error } = await supabase
+            .from("users")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+
+          if (error) throw error;
+          
+          if (data && data.role) {
+            checkAndRedirectToOnboarding(user.id, data.role);
+          } else {
+            navigate("/dashboard");
+          }
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+          navigate("/dashboard");
+        }
+      };
+
+      getUserRoleAndRedirect();
     }
   }, [user, navigate]);
 
@@ -69,17 +168,29 @@ const Auth = () => {
     defaultValues: {
       email: "",
       password: "",
-      role: "tenant",
+      role: roleFromUrl as "tenant" | "agent" | "landlord" || "tenant",
     },
   });
+
+  // Update the role field in the form when the URL role parameter changes
+  useEffect(() => {
+    if (roleFromUrl) {
+      registerForm.setValue('role', roleFromUrl as "tenant" | "agent" | "landlord");
+    }
+  }, [roleFromUrl, registerForm]);
 
   const onLoginSubmit = async (values: LoginFormValues) => {
     try {
       setIsLoading(true);
       await signIn(values.email, values.password);
-      navigate("/dashboard");
+      // Redirection handled in the useEffect
     } catch (error) {
       console.error("Login error:", error);
+      toast({
+        title: "Login failed",
+        description: "Please check your credentials and try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -96,6 +207,11 @@ const Auth = () => {
       setActiveTab("login");
     } catch (error) {
       console.error("Registration error:", error);
+      toast({
+        title: "Registration failed",
+        description: "Please check your information and try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
