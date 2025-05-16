@@ -41,7 +41,8 @@ const OnboardAgent = () => {
             bio: values.bio || "",
             status: "basic", // Update status to basic after completing onboarding
           })
-          .eq("id", user.id);
+          .eq("id", user.id)
+          .then(result => result);
         return result;
       },
       {
@@ -52,7 +53,7 @@ const OnboardAgent = () => {
     );
   };
 
-  // Define form fields for ProfileForm
+  // Define form fields for ProfileForm with proper literal type values
   const formFields = [
     {
       name: "license_number",
@@ -76,7 +77,7 @@ const OnboardAgent = () => {
       name: "bio",
       label: "Professional Bio",
       description: "Brief professional description, areas of expertise, etc.",
-      component: "textarea",
+      component: "textarea" as const, // Using 'as const' to ensure literal type
       placeholder: "Tell us about your experience and specialties...",
     },
   ];

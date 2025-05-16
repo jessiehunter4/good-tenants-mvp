@@ -54,7 +54,8 @@ const OnboardTenant = () => {
             bio: values.bio || "",
             status: "basic", // Update status after completing onboarding
           })
-          .eq("id", user.id);
+          .eq("id", user.id)
+          .then(result => result);
         return result;
       },
       {
@@ -65,13 +66,13 @@ const OnboardTenant = () => {
     );
   };
 
-  // Define form fields for ProfileForm
+  // Define form fields for ProfileForm with proper literal type values
   const formFields = [
     {
       name: "move_in_date",
       label: "Expected Move-In Date",
       description: "When are you looking to move in?",
-      component: "custom",
+      component: "custom" as const, // Using 'as const' to ensure literal type
       customComponent: (
         <ProfileForm.DatePicker
           description="When are you looking to move in?"
@@ -98,7 +99,7 @@ const OnboardTenant = () => {
       name: "pets",
       label: "I have pets",
       description: "Check this box if you have pets that will be living with you.",
-      component: "custom",
+      component: "custom" as const, // Using 'as const' to ensure literal type
       customComponent: <ProfileForm.Checkbox label="I have pets" />,
     },
     {
@@ -111,7 +112,7 @@ const OnboardTenant = () => {
       name: "bio",
       label: "About You",
       description: "Brief description about yourself (occupation, lifestyle, etc.)",
-      component: "textarea",
+      component: "textarea" as const, // Using 'as const' to ensure literal type
       placeholder: "Tell us a bit about yourself and what you're looking for...",
     },
   ];

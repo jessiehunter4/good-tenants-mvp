@@ -43,7 +43,8 @@ const OnboardLandlord = () => {
             bio: values.bio || "",
             status: "basic", // Update status to basic after completing onboarding
           })
-          .eq("id", user.id);
+          .eq("id", user.id)
+          .then(result => result);
         return result;
       },
       {
@@ -54,7 +55,7 @@ const OnboardLandlord = () => {
     );
   };
 
-  // Define form fields for ProfileForm
+  // Define form fields for ProfileForm with proper literal type values
   const formFields = [
     {
       name: "property_count",
@@ -73,7 +74,7 @@ const OnboardLandlord = () => {
       name: "management_type",
       label: "Property Management",
       description: "How do you manage your properties?",
-      component: "custom",
+      component: "custom" as const, // Using 'as const' to ensure literal type
       customComponent: (
         <div className="flex flex-col space-y-3">
           <ProfileForm.RadioOption
@@ -95,14 +96,14 @@ const OnboardLandlord = () => {
       name: "preferred_tenant_criteria",
       label: "Preferred Tenant Criteria",
       description: "What are you looking for in an ideal tenant?",
-      component: "textarea",
+      component: "textarea" as const, // Using 'as const' to ensure literal type
       placeholder: "e.g. No smoking, minimum credit score, income requirements...",
     },
     {
       name: "bio",
       label: "About You",
       description: "Brief description about your property management philosophy.",
-      component: "textarea",
+      component: "textarea" as const, // Using 'as const' to ensure literal type
       placeholder: "Tell us about yourself as a property owner...",
     },
   ];
