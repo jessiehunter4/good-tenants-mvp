@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import ProfileForm from "@/components/shared/ProfileForm";
+import ProfileForm from "@/components/shared/form/ProfileForm";
 import { useDataOperation } from "@/hooks/useDataOperation";
 import { createProfileSchema } from "@/lib/form-validation";
 

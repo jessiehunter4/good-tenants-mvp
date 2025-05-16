@@ -1,11 +1,10 @@
-
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { format } from "date-fns";
-import ProfileForm from "@/components/shared/ProfileForm";
+import ProfileForm from "@/components/shared/form/ProfileForm";
 import { useDataOperation } from "@/hooks/useDataOperation";
 import { createProfileSchema } from "@/lib/form-validation";
 
@@ -73,7 +72,6 @@ const OnboardTenant = () => {
       label: "Expected Move-In Date",
       description: "When are you looking to move in?",
       component: "custom" as const,
-      // Pass an empty function for field since it will be provided by FormField 
       customComponent: <ProfileForm.DatePicker 
         description="When are you looking to move in?"
         minDate={new Date()}

@@ -20,12 +20,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import CheckboxField from "./form-fields/CheckboxField";
-import DatePickerField from "./form-fields/DatePickerField";
-import RadioOption from "./form-fields/RadioOption";
-import RadioGroupField from "./form-fields/RadioGroupField";
 
-interface ProfileFormProps {
+// Import form field components
+import { DatePickerField } from "./fields/DatePickerField";
+import { CheckboxField } from "./fields/CheckboxField";
+import { RadioOption } from "./fields/RadioOption";
+import { RadioGroupField } from "./fields/RadioGroupField";
+
+export interface ProfileFormProps {
   title: string;
   description: string;
   form: any;
@@ -120,7 +122,7 @@ const ProfileForm = ({
   );
 };
 
-// Add custom components as properties to the ProfileForm component
+// Export form field components
 ProfileForm.DatePicker = DatePickerField;
 ProfileForm.Checkbox = CheckboxField;
 ProfileForm.RadioOption = RadioOption;

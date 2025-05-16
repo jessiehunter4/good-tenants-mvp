@@ -8,7 +8,7 @@ interface RadioOptionProps {
   label: string;
 }
 
-const RadioOption = ({ value, label }: RadioOptionProps) => (
+export const RadioOption = ({ value, label }: RadioOptionProps) => (
   <FormItem className="flex items-center space-x-3 space-y-0">
     <FormControl>
       <RadioGroupItem value={value} />
@@ -18,5 +18,3 @@ const RadioOption = ({ value, label }: RadioOptionProps) => (
     </FormLabel>
   </FormItem>
 );
-
-export default RadioOption;

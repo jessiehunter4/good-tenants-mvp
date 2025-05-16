@@ -19,7 +19,7 @@ interface DatePickerFieldProps {
   maxDate?: Date;
 }
 
-const DatePickerField = ({ field, description, minDate, maxDate }: DatePickerFieldProps) => (
+export const DatePickerField = ({ field, description, minDate, maxDate }: DatePickerFieldProps) => (
   <>
     <Popover>
       <PopoverTrigger asChild>
@@ -58,5 +58,3 @@ const DatePickerField = ({ field, description, minDate, maxDate }: DatePickerFie
     {description && <FormDescription>{description}</FormDescription>}
   </>
 );
-
-export default DatePickerField;

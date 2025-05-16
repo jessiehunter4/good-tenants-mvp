@@ -8,7 +8,7 @@ interface CheckboxFieldProps {
   label: string;
 }
 
-const CheckboxField = ({ field, label }: CheckboxFieldProps) => (
+export const CheckboxField = ({ field, label }: CheckboxFieldProps) => (
   <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
     <FormControl>
       <Checkbox
@@ -21,5 +21,3 @@ const CheckboxField = ({ field, label }: CheckboxFieldProps) => (
     </div>
   </div>
 );
-
-export default CheckboxField;

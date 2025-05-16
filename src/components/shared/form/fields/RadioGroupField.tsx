@@ -1,7 +1,7 @@
 
 import React from "react";
 import { RadioGroup } from "@/components/ui/radio-group";
-import RadioOption from "./RadioOption";
+import { RadioOption } from "./RadioOption";
 
 interface RadioOptionType {
   value: string;
@@ -13,7 +13,7 @@ interface RadioGroupFieldProps {
   options: RadioOptionType[];
 }
 
-const RadioGroupField = ({ field, options }: RadioGroupFieldProps) => (
+export const RadioGroupField = ({ field, options }: RadioGroupFieldProps) => (
   <RadioGroup
     onValueChange={field.onChange}
     defaultValue={field.value}
@@ -24,5 +24,3 @@ const RadioGroupField = ({ field, options }: RadioGroupFieldProps) => (
     ))}
   </RadioGroup>
 );
-
-export default RadioGroupField;
