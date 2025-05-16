@@ -11,6 +11,8 @@ export interface LandlordProfile {
   property_count: number | null;
   years_experience: number | null;
   is_verified: boolean | null;
+  management_type: string | null;
+  preferred_tenant_criteria: string | null;
 }
 
 export interface Listing {
@@ -37,6 +39,7 @@ export interface TenantProfile {
   pets: boolean | null;
   preferred_locations: string[] | null;
   bio: string | null;
+  is_pre_screened: boolean | null;
 }
 
 export const useLandlordData = () => {
@@ -77,13 +80,14 @@ export const useLandlordData = () => {
         // Only fetch tenant directory if landlord is verified
         if (profileData && (profileData.status === "verified" || profileData.status === "premium")) {
           // Join tenant_profiles with users to get email
+          // Updated query to include both verified and pre-screened tenants
           const { data: tenantsData, error: tenantsError } = await supabase
             .from("tenant_profiles")
             .select(`
               *,
               user_email:users(email)
             `)
-            .eq("status", "verified");
+            .or('status.eq.verified,is_pre_screened.eq.true');
 
           if (tenantsError) throw tenantsError;
           
