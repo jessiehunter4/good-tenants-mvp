@@ -26,6 +26,20 @@ const LandingPage = () => {
               The best way to connect pre-screened tenants with quality housing
             </p>
             
+            {/* Summer campaign banner */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 flex flex-col md:flex-row items-center justify-between max-w-3xl mx-auto">
+              <div className="text-left mb-4 md:mb-0">
+                <h3 className="text-lg font-bold text-blue-900">Moving this summer?</h3>
+                <p className="text-blue-700">Find your next rental faster with our new summer program</p>
+              </div>
+              <Button 
+                onClick={() => navigate('/summer')} 
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Learn More
+              </Button>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
               <div 
                 className={`p-6 rounded-lg border-2 cursor-pointer transition-all ${

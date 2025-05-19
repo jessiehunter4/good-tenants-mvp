@@ -58,16 +58,43 @@ export const RegisterForm = ({ setActiveTab }: RegisterFormProps) => {
   // Get role from URL query params
   const queryParams = new URLSearchParams(location.search);
   const roleFromUrl = queryParams.get("role");
+  
+  // Check for pre-filled values from sessionStorage
+  const [prefilledData, setPrefilledData] = useState<any>(null);
+  
+  useEffect(() => {
+    const storedData = sessionStorage.getItem("prefilled_registration");
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        setPrefilledData(parsedData);
+        // Remove the data after retrieving it to prevent it from being used multiple times
+        sessionStorage.removeItem("prefilled_registration");
+      } catch (error) {
+        console.error("Error parsing prefilled registration data:", error);
+      }
+    }
+  }, []);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      email: "",
+      email: prefilledData?.email || "",
       password: "",
-      role: roleFromUrl as "tenant" | "agent" | "landlord" | "admin" || "tenant",
+      role: roleFromUrl as "tenant" | "agent" | "landlord" | "admin" || prefilledData?.role || "tenant",
       adminCode: "",
     },
   });
+
+  // Update the form values when prefilledData is loaded
+  useEffect(() => {
+    if (prefilledData?.email) {
+      form.setValue('email', prefilledData.email);
+    }
+    if (prefilledData?.role) {
+      form.setValue('role', prefilledData.role);
+    }
+  }, [prefilledData, form]);
 
   // Update the role field in the form when the URL role parameter changes
   useEffect(() => {
@@ -96,6 +123,16 @@ export const RegisterForm = ({ setActiveTab }: RegisterFormProps) => {
         description: "Please check your email to verify your account.",
       });
       setActiveTab("login");
+      
+      // Store additional user data for onboarding
+      if (prefilledData) {
+        sessionStorage.setItem("onboarding_data", JSON.stringify({
+          name: prefilledData.name,
+          phone: prefilledData.phone,
+          moveInDate: prefilledData.moveInDate,
+          city: prefilledData.city
+        }));
+      }
     } catch (error) {
       console.error("Registration error:", error);
       toast({
