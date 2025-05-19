@@ -6,8 +6,11 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import KPICard from "@/components/admin/KPICard";
 import StatsBreakdown from "@/components/admin/StatsBreakdown";
 import UserTable from "@/components/admin/UserTable";
+import UserVerificationTable from "@/components/admin/UserVerificationTable";
+import TenantProfileTable from "@/components/admin/TenantProfileTable";
 import ProfileProgressCard from "@/components/admin/ProfileProgressCard";
 import useAdminStats from "@/hooks/useAdminStats";
+import { toast } from "@/components/ui/sonner";
 
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
@@ -17,8 +20,16 @@ const AdminDashboard = () => {
     listingStats,
     inviteStats,
     recentUsers,
+    recentTenants,
+    unverifiedUsers,
     loading,
+    refreshData
   } = useAdminStats();
+
+  const handleUserVerified = () => {
+    toast.success("User verification status updated");
+    refreshData();
+  };
 
   if (loading) {
     return (
@@ -89,7 +100,9 @@ const AdminDashboard = () => {
         <Tabs defaultValue="users">
           <TabsList className="mb-4">
             <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="profiles">Profiles</TabsTrigger>
+            <TabsTrigger value="tenants">Tenant Profiles</TabsTrigger>
+            <TabsTrigger value="verification">Verification</TabsTrigger>
+            <TabsTrigger value="profiles">Profile Stats</TabsTrigger>
             <TabsTrigger value="listings">Listings</TabsTrigger>
             <TabsTrigger value="invitations">Invitations</TabsTrigger>
           </TabsList>
@@ -104,6 +117,37 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <UserTable users={recentUsers} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="tenants">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Tenant Profiles</CardTitle>
+                <CardDescription>
+                  Most recent tenant profiles registered in the system.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TenantProfileTable tenants={recentTenants} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="verification">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Verification</CardTitle>
+                <CardDescription>
+                  Review and verify users to grant them full access to the platform.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <UserVerificationTable 
+                  users={unverifiedUsers} 
+                  onUserVerified={handleUserVerified}
+                />
               </CardContent>
             </Card>
           </TabsContent>
