@@ -26,6 +26,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { LockIcon } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -35,9 +36,19 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  role: z.enum(["tenant", "agent", "landlord"], {
+  role: z.enum(["tenant", "agent", "landlord", "admin"], {
     required_error: "Please select a role.",
   }),
+  adminCode: z.string().optional(),
+}).refine((data) => {
+  // If role is admin, adminCode is required
+  if (data.role === "admin") {
+    return !!data.adminCode;
+  }
+  return true;
+}, {
+  message: "Admin registration code is required",
+  path: ["adminCode"],
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -50,6 +61,7 @@ const Auth = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
+  const [showAdminCode, setShowAdminCode] = useState(false);
 
   // Get role from URL query params
   const queryParams = new URLSearchParams(location.search);
@@ -168,7 +180,8 @@ const Auth = () => {
     defaultValues: {
       email: "",
       password: "",
-      role: roleFromUrl as "tenant" | "agent" | "landlord" || "tenant",
+      role: roleFromUrl as "tenant" | "agent" | "landlord" | "admin" || "tenant",
+      adminCode: "",
     },
   });
 
@@ -178,6 +191,17 @@ const Auth = () => {
       registerForm.setValue('role', roleFromUrl as "tenant" | "agent" | "landlord");
     }
   }, [roleFromUrl, registerForm]);
+
+  // Watch for role changes to show/hide admin code field
+  useEffect(() => {
+    const subscription = registerForm.watch((value, { name }) => {
+      if (name === 'role' || name === undefined) {
+        setShowAdminCode(value.role === 'admin');
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [registerForm.watch]);
 
   const onLoginSubmit = async (values: LoginFormValues) => {
     try {
@@ -199,7 +223,7 @@ const Auth = () => {
   const onRegisterSubmit = async (values: RegisterFormValues) => {
     try {
       setIsLoading(true);
-      await signUp(values.email, values.password, values.role);
+      await signUp(values.email, values.password, values.role, values.adminCode);
       toast({
         title: "Registration successful!",
         description: "Please check your email to verify your account.",
@@ -332,12 +356,40 @@ const Auth = () => {
                                 Landlord/Property Owner
                               </FormLabel>
                             </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="admin" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                Administrator
+                              </FormLabel>
+                            </FormItem>
                           </RadioGroup>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {showAdminCode && (
+                    <FormField
+                      control={registerForm.control}
+                      name="adminCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Admin Registration Code</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input type="password" {...field} />
+                              <LockIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
                   <Button type="submit" disabled={isLoading} className="w-full">
                     {isLoading ? "Creating account..." : "Create account"}
                   </Button>

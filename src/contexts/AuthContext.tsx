@@ -9,7 +9,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, role: string) => Promise<void>;
+  signUp: (email: string, password: string, role: string, adminCode?: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -63,8 +63,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string, role: string) => {
+  const signUp = async (email: string, password: string, role: string, adminCode?: string) => {
     try {
+      // Verify admin code if trying to register as admin
+      if (role === "admin") {
+        if (!adminCode || adminCode !== "GT_ADMIN_2024") {
+          throw new Error("Invalid admin registration code");
+        }
+      }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
