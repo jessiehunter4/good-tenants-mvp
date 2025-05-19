@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import DashboardLoader from "@/components/dashboard/DashboardLoader";
 
 const WelcomeCard = () => {
   const { user, getUserRole } = useAuth();
