@@ -34,6 +34,25 @@ export const triggerWebhook = async (payload: any) => {
 };
 
 /**
+ * Send an invite notification via webhook
+ */
+export const sendInviteNotification = async (tenantId: string, senderId: string, listingId: string | null = null) => {
+  try {
+    await triggerWebhook({
+      type: "invite",
+      tenantId,
+      senderId,
+      listingId,
+      timestamp: new Date().toISOString()
+    });
+    return true;
+  } catch (error) {
+    console.error("Failed to send invite notification:", error);
+    return false;
+  }
+};
+
+/**
  * Validates and sanitizes the payload before sending
  */
 const validatePayload = (payload: any): any => {
@@ -48,12 +67,24 @@ const validatePayload = (payload: any): any => {
     cleanPayload.userId = String(payload.userId).replace(/[<>]/g, '');
   }
   
+  if (payload.tenantId) {
+    cleanPayload.tenantId = String(payload.tenantId).replace(/[<>]/g, '');
+  }
+  
+  if (payload.senderId) {
+    cleanPayload.senderId = String(payload.senderId).replace(/[<>]/g, '');
+  }
+  
   if (payload.message) {
     cleanPayload.message = String(payload.message).replace(/[<>]/g, '');
   }
   
   if (payload.type && typeof payload.type === 'string') {
     cleanPayload.type = payload.type;
+  }
+  
+  if (payload.listingId) {
+    cleanPayload.listingId = String(payload.listingId).replace(/[<>]/g, '');
   }
   
   // Add timestamp for tracking

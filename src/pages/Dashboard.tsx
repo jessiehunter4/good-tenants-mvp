@@ -13,9 +13,11 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, getUserRole } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [profileStatus, setProfileStatus] = useState<string>("incomplete");
@@ -28,19 +30,31 @@ const Dashboard = () => {
 
       try {
         // Fetch user role
-        const { data: userData, error: userError } = await supabase
-          .from("users")
-          .select("role")
-          .eq("id", user.id)
-          .single();
+        const role = await getUserRole();
+        if (role) {
+          setUserRole(role);
+          
+          // Redirect to role-specific dashboard
+          switch (role) {
+            case "tenant":
+              navigate("/dashboard-tenant");
+              break;
+            case "agent":
+              navigate("/dashboard-agent");
+              break;
+            case "landlord":
+              navigate("/dashboard-landlord");
+              break;
+            case "admin":
+              navigate("/admin-dashboard");
+              break;
+            default:
+              break;
+          }
 
-        if (userError) throw userError;
-        if (userData) setUserRole(userData.role);
-
-        // Fetch profile status based on role
-        if (userData?.role) {
+          // Fetch profile status based on role
           let profileTable = "";
-          switch (userData.role) {
+          switch (role) {
             case "tenant":
               profileTable = "tenant_profiles";
               break;
@@ -98,7 +112,7 @@ const Dashboard = () => {
     };
 
     fetchUserData();
-  }, [user, toast]);
+  }, [user, toast, navigate, getUserRole]);
 
   if (loading) {
     return (
@@ -147,7 +161,13 @@ const Dashboard = () => {
                   Complete your profile information to improve your visibility and matches.
                 </p>
               </div>
-              <Button>Complete Profile</Button>
+              <Button onClick={() => {
+                if (userRole === "tenant") navigate("/onboard-tenant");
+                else if (userRole === "agent") navigate("/onboard-agent");
+                else if (userRole === "landlord") navigate("/onboard-landlord");
+              }}>
+                Complete Profile
+              </Button>
             </div>
           </CardContent>
         </Card>

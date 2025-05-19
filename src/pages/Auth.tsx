@@ -55,7 +55,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Auth = () => {
-  const { user, signIn, signUp } = useAuth();
+  const { user, session, signIn, signUp, getUserRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -144,16 +144,10 @@ const Auth = () => {
       // Get user role from Supabase
       const getUserRoleAndRedirect = async () => {
         try {
-          const { data, error } = await supabase
-            .from("users")
-            .select("role")
-            .eq("id", user.id)
-            .single();
-
-          if (error) throw error;
+          const role = await getUserRole();
           
-          if (data && data.role) {
-            checkAndRedirectToOnboarding(user.id, data.role);
+          if (role) {
+            checkAndRedirectToOnboarding(user.id, role);
           } else {
             navigate("/dashboard");
           }
@@ -165,7 +159,7 @@ const Auth = () => {
 
       getUserRoleAndRedirect();
     }
-  }, [user, navigate]);
+  }, [user, navigate, getUserRole]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
