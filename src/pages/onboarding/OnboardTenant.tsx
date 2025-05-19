@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,14 +8,38 @@ import { format } from "date-fns";
 import ProfileForm from "@/components/shared/form/ProfileForm";
 import { useDataOperation } from "@/hooks/useDataOperation";
 import { createProfileSchema } from "@/lib/form-validation";
+import { z } from "zod";
 
 const OnboardTenant = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { executeOperation, isLoading } = useDataOperation();
   
-  // Use the shared validation schema from form-validation.ts
-  const tenantSchema = createProfileSchema("tenant");
+  // Enhance the tenant schema with stronger validation
+  const tenantSchema = z.object({
+    household_size: z.number()
+      .int()
+      .min(1, { message: "Household must have at least 1 person" })
+      .max(20, { message: "Please enter a reasonable household size" }),
+    household_income: z.number()
+      .min(0, { message: "Income cannot be negative" })
+      .max(1000000, { message: "Please enter a reasonable monthly income" }),
+    pets: z.boolean(),
+    preferred_locations: z.string()
+      .max(500, { message: "Location list is too long" })
+      .refine(val => !val.includes("<script>"), { 
+        message: "Invalid characters detected" 
+      }),
+    bio: z.string()
+      .max(1000, { message: "Bio is too long (max 1000 characters)" })
+      .refine(val => !val.includes("<script>"), { 
+        message: "Invalid characters detected" 
+      })
+      .optional()
+      .transform(val => val || ""),
+    move_in_date: z.date()
+      .min(new Date(), { message: "Move-in date must be in the future" })
+  });
   
   const form = useForm({
     resolver: zodResolver(tenantSchema),
@@ -24,22 +49,36 @@ const OnboardTenant = () => {
       pets: false,
       preferred_locations: "",
       bio: "",
-      move_in_date: new Date(), // Add default move_in_date
+      move_in_date: new Date(), 
     },
   });
 
-  const onSubmit = async (values) => {
+  const onSubmit = async (values: z.infer<typeof tenantSchema>) => {
     if (!user) return;
 
-    // Convert preferred locations string to array
+    // Sanitize inputs to prevent XSS
+    const sanitizeInput = (input: string): string => {
+      return input
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    };
+
+    // Convert preferred locations string to array and sanitize
     const locationsArray = values.preferred_locations
-      ? values.preferred_locations.split(",").map(location => location.trim())
+      ? values.preferred_locations
+          .split(",")
+          .map(location => sanitizeInput(location.trim()))
+          .filter(location => location.length > 0)
       : [];
 
     // Format date to string for Supabase
     const formattedDate = format(values.move_in_date, 'yyyy-MM-dd');
 
-    // Use the executeOperation function from useDataOperation for consistent error handling
+    // Sanitize bio text
+    const sanitizedBio = sanitizeInput(values.bio);
+
     await executeOperation(
       async () => {
         const result = await supabase
@@ -50,7 +89,7 @@ const OnboardTenant = () => {
             household_income: values.household_income,
             pets: values.pets,
             preferred_locations: locationsArray,
-            bio: values.bio || "",
+            bio: sanitizedBio,
             status: "basic", // Update status after completing onboarding
           })
           .eq("id", user.id)
