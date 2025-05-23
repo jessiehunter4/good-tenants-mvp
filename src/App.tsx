@@ -7,6 +7,7 @@ import LandingPage from "./pages/LandingPage";
 import SummerLandingPage from "./pages/SummerLandingPage";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import MarketAnalytics from "./pages/MarketAnalytics";
 import NotFound from "./pages/NotFound";
 
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -32,6 +33,9 @@ function App() {
           <Route path="/summer" element={<SummerLandingPage />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/index" element={<Index />} />
+
+          {/* Market Analytics - Public Access */}
+          <Route path="/market-analytics" element={<MarketAnalytics />} />
 
           {/* Protected Routes */}
           <Route

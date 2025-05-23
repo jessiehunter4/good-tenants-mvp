@@ -1,6 +1,9 @@
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { TrendingUp } from "lucide-react";
 import { Listing } from "@/types/listings";
 import PropertyFilters from "./PropertyFilters";
 import PropertyGrid from "./PropertyGrid";
@@ -47,10 +50,20 @@ const PropertyDirectory = ({ listings, onExpressInterest, onViewProperty }: Prop
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Available Properties</CardTitle>
-        <CardDescription>
-          Browse rental properties from verified landlords and agents
-        </CardDescription>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <CardTitle>Available Properties</CardTitle>
+            <CardDescription>
+              Browse rental properties from verified landlords and agents
+            </CardDescription>
+          </div>
+          <Link to="/market-analytics">
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Market Analytics
+            </Button>
+          </Link>
+        </div>
 
         <PropertyFilters
           searchQuery={searchQuery}
