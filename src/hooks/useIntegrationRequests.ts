@@ -3,16 +3,18 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
+interface IntegrationRequestData {
+  integration_name: string;
+  provider_name: string;
+  business_justification: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+}
+
 export const useIntegrationRequests = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const createIntegrationRequest = async (requestData: {
-    integration_name: string;
-    provider_name: string;
-    business_justification: string;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-  }) => {
+  const createIntegrationRequest = async (requestData: IntegrationRequestData) => {
     try {
       setLoading(true);
       

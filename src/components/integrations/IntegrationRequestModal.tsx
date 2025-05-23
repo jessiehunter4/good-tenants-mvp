@@ -61,7 +61,14 @@ const IntegrationRequestModal = ({ children }: IntegrationRequestModalProps) => 
   });
 
   const onSubmit = async (data: IntegrationRequestForm) => {
-    const success = await createIntegrationRequest(data);
+    // Ensure all required fields are present
+    const success = await createIntegrationRequest({
+      integration_name: data.integration_name,
+      provider_name: data.provider_name,
+      business_justification: data.business_justification,
+      priority: data.priority,
+    });
+    
     if (success) {
       setOpen(false);
       form.reset();
