@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -228,11 +227,14 @@ const OnboardTenant = () => {
       description: "What types of properties are you interested in?",
       component: "custom" as const,
       customComponent: (
-        <div className="flex flex-col space-y-3">
-          <ProfileForm.Checkbox label="House" value="house" field={{}} />
-          <ProfileForm.Checkbox label="Townhouse/Condo" value="townhouse_condo" field={{}} />
-          <ProfileForm.Checkbox label="Apartment" value="apartment" field={{}} />
-        </div>
+        <ProfileForm.CheckboxGroup 
+          options={[
+            { value: "house", label: "House" },
+            { value: "townhouse_condo", label: "Townhouse/Condo" },
+            { value: "apartment", label: "Apartment" }
+          ]}
+          field={{}}
+        />
       ),
     },
     {

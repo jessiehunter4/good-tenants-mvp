@@ -24,6 +24,7 @@ import {
 // Import form field components
 import { DatePickerField } from "./fields/DatePickerField";
 import { CheckboxField } from "./fields/CheckboxField";
+import { CheckboxGroupField } from "./fields/CheckboxGroupField";
 import { RadioOption } from "./fields/RadioOption";
 import { RadioGroupField } from "./fields/RadioGroupField";
 
@@ -125,6 +126,7 @@ const ProfileForm = ({
 // Export form field components
 ProfileForm.DatePicker = DatePickerField;
 ProfileForm.Checkbox = CheckboxField;
+ProfileForm.CheckboxGroup = CheckboxGroupField;
 ProfileForm.RadioOption = RadioOption;
 ProfileForm.RadioGroup = RadioGroupField;
 
