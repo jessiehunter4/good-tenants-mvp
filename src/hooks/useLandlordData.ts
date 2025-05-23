@@ -83,31 +83,27 @@ export const useLandlordData = () => {
     fetchLandlordData();
   }, [user, toast]);
 
-  // Handle sending invitation to tenant
-  const handleSendInvite = async (tenantId: string) => {
-    if (!user || listings.length === 0) {
+  // Handle sending invitation to tenant with property and message
+  const handleSendInvite = async (tenantId: string, propertyId: string, message: string) => {
+    if (!user) {
       toast({
-        title: "Cannot send invite",
-        description: "You need to add a listing first.",
+        title: "Authentication required",
+        description: "You must be logged in to send invitations.",
         variant: "destructive",
       });
       return;
     }
 
-    // In a real app, you would show a modal to select which listing to invite to
-    // For now, we'll use the first listing if available
-    const listingId = listings[0]?.id;
-    
-    if (!listingId) {
+    if (!propertyId) {
       toast({
-        title: "No listings available",
-        description: "Please create a listing first.",
+        title: "Property required",
+        description: "Please select a property to invite the tenant to.",
         variant: "destructive",
       });
       return;
     }
 
-    await sendInviteToTenant(tenantId, user.id, listingId, toast);
+    await sendInviteToTenant(tenantId, user.id, propertyId, toast);
   };
 
   // Filter tenants based on search query
