@@ -2,22 +2,22 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, Home, Plus, MessageSquare, LogOut } from "lucide-react";
+import { User, Home, Plus, MessageSquare, LogOut, Settings, Zap } from "lucide-react";
+import IntegrationRequestModal from "@/components/integrations/IntegrationRequestModal";
 
 interface DashboardHeaderProps {
   title: string;
   subtitle?: string;
   showControls?: boolean;
-  email?: string; // Add email prop
-  onSignOut?: () => void; // Add onSignOut prop
-  role?: string; // Add role prop
+  email?: string;
+  onSignOut?: () => void;
+  role?: string;
 }
 
 const DashboardHeader = ({ title, subtitle, showControls = true, email, onSignOut }: DashboardHeaderProps) => {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
   
-  // Use provided signOut handler or default to useAuth's signOut
   const handleSignOut = () => {
     if (onSignOut) {
       onSignOut();
@@ -54,6 +54,26 @@ const DashboardHeader = ({ title, subtitle, showControls = true, email, onSignOu
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Property
+              </Button>
+            )}
+
+            {user?.role !== "admin" && (
+              <IntegrationRequestModal>
+                <Button variant="outline" size="sm">
+                  <Zap className="h-4 w-4 mr-2" />
+                  Request Integration
+                </Button>
+              </IntegrationRequestModal>
+            )}
+
+            {user?.role === "admin" && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/admin')}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Admin
               </Button>
             )}
             

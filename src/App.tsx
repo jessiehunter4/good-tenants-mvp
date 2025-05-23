@@ -17,6 +17,7 @@ import OnboardAgent from "./pages/onboarding/OnboardAgent";
 import OnboardLandlord from "./pages/onboarding/OnboardLandlord";
 import CreateProperty from "./pages/CreateProperty";
 import MessagingCenter from "./pages/messaging/MessagingCenter";
+import AdminDashboard from "./pages/dashboards/AdminDashboard";
 import Index from "./pages/Index";
 
 import "./App.css";
@@ -39,6 +40,16 @@ function App() {
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <AdminDashboard />
+              </RoleBasedRoute>
             }
           />
 

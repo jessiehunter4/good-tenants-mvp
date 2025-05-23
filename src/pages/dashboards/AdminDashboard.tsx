@@ -12,6 +12,7 @@ import ProfileProgressCard from "@/components/admin/ProfileProgressCard";
 import IntegrationCard from "@/components/admin/integrations/IntegrationCard";
 import IntegrationRequestsTable from "@/components/admin/integrations/IntegrationRequestsTable";
 import IntegrationUsageChart from "@/components/admin/integrations/IntegrationUsageChart";
+import IntegrationTester from "@/components/integrations/IntegrationTester";
 import useAdminStats from "@/hooks/useAdminStats";
 import { useIntegrations } from "@/hooks/useIntegrations";
 import { toast } from "@/components/ui/sonner";
