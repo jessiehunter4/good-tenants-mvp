@@ -8,11 +8,23 @@ interface DashboardHeaderProps {
   title: string;
   subtitle?: string;
   showControls?: boolean;
+  email?: string; // Add email prop
+  onSignOut?: () => void; // Add onSignOut prop
+  role?: string; // Add role prop
 }
 
-const DashboardHeader = ({ title, subtitle, showControls = true }: DashboardHeaderProps) => {
+const DashboardHeader = ({ title, subtitle, showControls = true, email, onSignOut }: DashboardHeaderProps) => {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
+  
+  // Use provided signOut handler or default to useAuth's signOut
+  const handleSignOut = () => {
+    if (onSignOut) {
+      onSignOut();
+    } else {
+      signOut();
+    }
+  };
 
   return (
     <header className="bg-white shadow">
@@ -45,7 +57,7 @@ const DashboardHeader = ({ title, subtitle, showControls = true }: DashboardHead
               </Button>
             )}
             
-            <Button variant="outline" size="sm" onClick={signOut}>
+            <Button variant="outline" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>

@@ -20,7 +20,8 @@ export const useMessaging = () => {
     try {
       setLoading(true);
       
-      const { data: threadData, error: threadError } = await supabase
+      // Note: We use 'any' type temporarily here since our Database type doesn't include the new tables yet
+      const { data: threadData, error: threadError } = await (supabase as any)
         .from("message_threads")
         .select(`
           *,
@@ -30,13 +31,10 @@ export const useMessaging = () => {
       
       if (threadError) throw threadError;
       
-      // Get all thread IDs to fetch last messages
-      const threadIds = threadData.map(thread => thread.id);
-      
       // For each thread, fetch the last message
       const threadsWithLastMessage = await Promise.all(
-        threadData.map(async (thread) => {
-          const { data: lastMessageData } = await supabase
+        threadData.map(async (thread: any) => {
+          const { data: lastMessageData } = await (supabase as any)
             .from("messages")
             .select("*")
             .eq("thread_id", thread.id)
@@ -45,7 +43,7 @@ export const useMessaging = () => {
             .single();
             
           // Count unread messages
-          const { count: unreadCount } = await supabase
+          const { count: unreadCount } = await (supabase as any)
             .from("messages")
             .select("*", { count: "exact", head: true })
             .eq("thread_id", thread.id)
@@ -56,11 +54,11 @@ export const useMessaging = () => {
             ...thread,
             last_message: lastMessageData || null,
             unread_count: unreadCount || 0
-          };
+          } as MessageThread;
         })
       );
       
-      setThreads(threadsWithLastMessage as MessageThread[]);
+      setThreads(threadsWithLastMessage);
     } catch (error) {
       console.error("Error fetching message threads:", error);
       toast({
@@ -81,7 +79,7 @@ export const useMessaging = () => {
       setLoading(true);
       
       // Get the thread details
-      const { data: threadData, error: threadError } = await supabase
+      const { data: threadData, error: threadError } = await (supabase as any)
         .from("message_threads")
         .select(`
           *,
@@ -97,7 +95,7 @@ export const useMessaging = () => {
       setActiveThread(threadData as MessageThread);
       
       // Get messages for this thread
-      const { data: messageData, error: messageError } = await supabase
+      const { data: messageData, error: messageError } = await (supabase as any)
         .from("messages")
         .select(`
           *,
@@ -110,7 +108,7 @@ export const useMessaging = () => {
       setMessages(messageData as Message[]);
       
       // Mark messages as read
-      await supabase
+      await (supabase as any)
         .from("messages")
         .update({ read_at: new Date().toISOString() })
         .eq("thread_id", threadId)
@@ -134,7 +132,7 @@ export const useMessaging = () => {
     if (!user || !content.trim()) return;
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("messages")
         .insert({
           thread_id: threadId,
@@ -172,7 +170,7 @@ export const useMessaging = () => {
     
     try {
       // First create the thread
-      const { data: threadData, error: threadError } = await supabase
+      const { data: threadData, error: threadError } = await (supabase as any)
         .from("message_threads")
         .insert({
           title: params.title || null,
@@ -193,7 +191,7 @@ export const useMessaging = () => {
         ...params.participants
       ];
       
-      const { error: participantError } = await supabase
+      const { error: participantError } = await (supabase as any)
         .from("thread_participants")
         .insert(
           participantsToAdd.map(p => ({
@@ -238,11 +236,11 @@ export const useMessaging = () => {
           filter: `thread_id=eq.${threadId}`
         },
         async (payload) => {
-          const newMessage = payload.new as Message;
+          const newMessage = payload.new as unknown as Message;
           
           // If the message is not from the current user, mark it as read
           if (newMessage.sender_id !== user?.id) {
-            await supabase
+            await (supabase as any)
               .from("messages")
               .update({ read_at: new Date().toISOString() })
               .eq("id", newMessage.id);
@@ -258,9 +256,9 @@ export const useMessaging = () => {
           const messageWithSender = {
             ...newMessage,
             sender: senderData
-          };
+          } as Message;
           
-          onNewMessage(messageWithSender as Message);
+          onNewMessage(messageWithSender);
         }
       )
       .subscribe();

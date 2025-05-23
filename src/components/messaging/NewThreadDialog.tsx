@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface User {
   id: string;
@@ -241,7 +242,3 @@ const NewThreadDialog: React.FC<NewThreadDialogProps> = ({ onThreadCreated }) =>
 };
 
 export default NewThreadDialog;
-
-// Import the necessary modules
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";

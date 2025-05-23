@@ -1,13 +1,13 @@
 
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useRolePermissions, UserRole, Permission } from "@/hooks/useRolePermissions";
+import { useRolePermissions, RoleType, Permission } from "@/hooks/useRolePermissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, AlertTriangle } from "lucide-react";
 
 interface RoleBasedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: UserRole[];
+  allowedRoles?: RoleType[];
   requiredPermission?: Permission;
   fallbackPath?: string;
   requireVerification?: boolean;

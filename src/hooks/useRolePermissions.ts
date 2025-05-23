@@ -18,6 +18,7 @@ export type Permission =
 export type AccessTier = "basic" | "verified" | "premium";
 
 export type RoleType = "tenant" | "agent" | "landlord" | "admin";
+export type UserRole = RoleType; // Add this export for compatibility
 
 interface RolePermissions {
   [key: string]: {
@@ -94,8 +95,10 @@ export const useRolePermissions = () => {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [tier, setTier] = useState<AccessTier>("basic");
   const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true); // Add loading state
 
   useEffect(() => {
+    setLoading(true); // Start loading
     if (user?.role) {
       const userRole = user.role as RoleType;
       setRole(userRole);
@@ -117,6 +120,7 @@ export const useRolePermissions = () => {
         setIsVerified(VERIFICATION_STATUS[profileStatus] || false);
       }
     }
+    setLoading(false); // End loading
   }, [user, userProfile]);
 
   const canAccess = (permission: Permission): boolean => {
@@ -129,5 +133,6 @@ export const useRolePermissions = () => {
     tier,
     isVerified,
     canAccess,
+    loading // Return loading state
   };
 };
