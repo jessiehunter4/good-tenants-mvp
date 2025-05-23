@@ -51,6 +51,224 @@ export type Database = {
         }
         Relationships: []
       }
+      integration_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          integration_id: string
+          performed_by: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          integration_id: string
+          performed_by: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          integration_id?: string
+          performed_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_audit_log_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_audit_log_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_requests: {
+        Row: {
+          admin_notes: string | null
+          business_justification: string
+          created_at: string
+          estimated_completion: string | null
+          id: string
+          integration_name: string
+          priority: string
+          provider_name: string
+          requested_by: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          business_justification: string
+          created_at?: string
+          estimated_completion?: string | null
+          id?: string
+          integration_name: string
+          priority?: string
+          provider_name: string
+          requested_by: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          business_justification?: string
+          created_at?: string
+          estimated_completion?: string | null
+          id?: string
+          integration_name?: string
+          priority?: string
+          provider_name?: string
+          requested_by?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_usage: {
+        Row: {
+          avg_response_time: number | null
+          created_at: string
+          date: string
+          endpoint: string | null
+          error_count: number
+          id: string
+          integration_id: string
+          request_count: number
+          success_count: number
+          user_id: string | null
+        }
+        Insert: {
+          avg_response_time?: number | null
+          created_at?: string
+          date?: string
+          endpoint?: string | null
+          error_count?: number
+          id?: string
+          integration_id: string
+          request_count?: number
+          success_count?: number
+          user_id?: string | null
+        }
+        Update: {
+          avg_response_time?: number | null
+          created_at?: string
+          date?: string
+          endpoint?: string | null
+          error_count?: number
+          id?: string
+          integration_id?: string
+          request_count?: number
+          success_count?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_usage_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integrations: {
+        Row: {
+          api_endpoint: string | null
+          config: Json | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          integration_type: string
+          last_tested_at: string | null
+          name: string
+          provider: string
+          requires_api_key: boolean | null
+          status: string
+          test_result: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_endpoint?: string | null
+          config?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          integration_type?: string
+          last_tested_at?: string | null
+          name: string
+          provider: string
+          requires_api_key?: boolean | null
+          status?: string
+          test_result?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_endpoint?: string | null
+          config?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          integration_type?: string
+          last_tested_at?: string | null
+          name?: string
+          provider?: string
+          requires_api_key?: boolean | null
+          status?: string
+          test_result?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invites: {
         Row: {
           created_at: string

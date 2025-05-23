@@ -9,7 +9,11 @@ import UserTable from "@/components/admin/UserTable";
 import UserVerificationTable from "@/components/admin/UserVerificationTable";
 import TenantProfileTable from "@/components/admin/TenantProfileTable";
 import ProfileProgressCard from "@/components/admin/ProfileProgressCard";
+import IntegrationCard from "@/components/admin/integrations/IntegrationCard";
+import IntegrationRequestsTable from "@/components/admin/integrations/IntegrationRequestsTable";
+import IntegrationUsageChart from "@/components/admin/integrations/IntegrationUsageChart";
 import useAdminStats from "@/hooks/useAdminStats";
+import { useIntegrations } from "@/hooks/useIntegrations";
 import { toast } from "@/components/ui/sonner";
 
 const AdminDashboard = () => {
@@ -26,12 +30,36 @@ const AdminDashboard = () => {
     refreshData
   } = useAdminStats();
 
+  const {
+    integrations,
+    integrationRequests,
+    usageStats,
+    auditLogs,
+    loading: integrationsLoading,
+    updateIntegrationStatus,
+    updateRequestStatus,
+    testIntegration,
+    refreshData: refreshIntegrations
+  } = useIntegrations();
+
   const handleUserVerified = () => {
     toast.success("User verification status updated");
     refreshData();
   };
 
-  if (loading) {
+  const handleIntegrationStatusChange = (id: string, status: any) => {
+    updateIntegrationStatus(id, status);
+  };
+
+  const handleRequestStatusUpdate = (id: string, status: any, notes?: string) => {
+    updateRequestStatus(id, status, notes);
+  };
+
+  const handleTestIntegration = (id: string) => {
+    testIntegration(id);
+  };
+
+  if (loading || integrationsLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
@@ -103,6 +131,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="tenants">Tenant Profiles</TabsTrigger>
             <TabsTrigger value="verification">Verification</TabsTrigger>
             <TabsTrigger value="profiles">Profile Stats</TabsTrigger>
+            <TabsTrigger value="integrations">Integrations</TabsTrigger>
             <TabsTrigger value="listings">Listings</TabsTrigger>
             <TabsTrigger value="invitations">Invitations</TabsTrigger>
           </TabsList>
@@ -257,6 +286,48 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="integrations">
+            <div className="space-y-6">
+              <IntegrationUsageChart usageData={usageStats} />
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Available Integrations</CardTitle>
+                  <CardDescription>
+                    Manage API integrations and external service connections.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {integrations.map((integration) => (
+                      <IntegrationCard
+                        key={integration.id}
+                        integration={integration}
+                        onStatusChange={handleIntegrationStatusChange}
+                        onTest={handleTestIntegration}
+                      />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Integration Requests</CardTitle>
+                  <CardDescription>
+                    Review and manage requests for new integrations from users.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <IntegrationRequestsTable 
+                    requests={integrationRequests}
+                    onStatusUpdate={handleRequestStatusUpdate}
+                  />
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="listings">
