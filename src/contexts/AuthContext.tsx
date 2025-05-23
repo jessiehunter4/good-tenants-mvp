@@ -3,12 +3,16 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { createHash } from "crypto-js/sha256";
+import { TenantProfile, LandlordProfile } from "@/types/profiles";
 
-interface UserProfile {
+// Generic profile interface that all profiles extend
+interface BaseProfile {
   id: string;
   status: string;
-  // Add other profile fields as needed
 }
+
+// Union type for all possible profile types
+type UserProfile = TenantProfile | LandlordProfile | BaseProfile;
 
 interface AuthContextType {
   user: User | null;
@@ -34,35 +38,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   // Fetch user profile based on role
-  const fetchUserProfile = async (userId: string, role: string) => {
+  const fetchUserProfile = async (userId: string, role: string): Promise<UserProfile | null> => {
     try {
-      let tableName = '';
       switch (role) {
-        case 'tenant':
-          tableName = 'tenant_profiles';
-          break;
-        case 'agent':
-          tableName = 'realtor_profiles';
-          break;
-        case 'landlord':
-          tableName = 'landlord_profiles';
-          break;
+        case 'tenant': {
+          const { data, error } = await supabase
+            .from('tenant_profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+          if (error && error.code !== 'PGRST116') {
+            console.error('Error fetching tenant profile:', error);
+            return null;
+          }
+          return data as TenantProfile;
+        }
+        case 'agent': {
+          const { data, error } = await supabase
+            .from('realtor_profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+          if (error && error.code !== 'PGRST116') {
+            console.error('Error fetching realtor profile:', error);
+            return null;
+          }
+          return data as BaseProfile;
+        }
+        case 'landlord': {
+          const { data, error } = await supabase
+            .from('landlord_profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+          if (error && error.code !== 'PGRST116') {
+            console.error('Error fetching landlord profile:', error);
+            return null;
+          }
+          return data as LandlordProfile;
+        }
         default:
           return null;
       }
-
-      const { data, error } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching user profile:', error);
-        return null;
-      }
-
-      return data;
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       return null;
