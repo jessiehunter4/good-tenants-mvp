@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import ThreadList from "@/components/messaging/ThreadList";
 import MessageThread from "@/components/messaging/MessageThread";
 import NewThreadDialog from "@/components/messaging/NewThreadDialog";
-import { DashboardHeader } from "@/components/shared/DashboardHeader";
+import DashboardHeader from "@/components/shared/DashboardHeader";
 import { FeatureGate } from "@/components/access";
 import { useAuth } from "@/contexts/AuthContext";
 

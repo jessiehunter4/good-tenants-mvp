@@ -9,6 +9,8 @@ interface LandlordHeaderProps {
 const LandlordHeader = ({ email, onSignOut }: LandlordHeaderProps) => {
   return (
     <DashboardHeader 
+      title="Landlord Dashboard"
+      subtitle="Find quality tenants and manage your properties"
       email={email}
       onSignOut={onSignOut}
       role="landlord"

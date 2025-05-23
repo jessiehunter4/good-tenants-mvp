@@ -1,13 +1,19 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { createHash } from "crypto-js/sha256";
 
+interface UserProfile {
+  id: string;
+  status: string;
+  // Add other profile fields as needed
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
+  userProfile: UserProfile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, role: string, adminCode?: string) => Promise<void>;
@@ -23,27 +29,81 @@ const ADMIN_CODE_HASH = "8c1c86e76a314f2a7637d60318111195b0c3c6f999e99282aaf1068
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  // Fetch user profile based on role
+  const fetchUserProfile = async (userId: string, role: string) => {
+    try {
+      let tableName = '';
+      switch (role) {
+        case 'tenant':
+          tableName = 'tenant_profiles';
+          break;
+        case 'agent':
+          tableName = 'realtor_profiles';
+          break;
+        case 'landlord':
+          tableName = 'landlord_profiles';
+          break;
+        default:
+          return null;
+      }
+
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching user profile:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, sessionData) => {
+      async (event, sessionData) => {
         if (sessionData) {
           setSession(sessionData);
           setUser(sessionData.user);
+          
+          // Fetch user profile
+          const role = await getUserRole();
+          if (role) {
+            const profile = await fetchUserProfile(sessionData.user.id, role);
+            setUserProfile(profile);
+          }
         } else {
           setSession(null);
           setUser(null);
+          setUserProfile(null);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: sessionData } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: sessionData } }) => {
       setSession(sessionData);
       setUser(sessionData?.user ?? null);
+      
+      if (sessionData?.user) {
+        const role = await getUserRole();
+        if (role) {
+          const profile = await fetchUserProfile(sessionData.user.id, role);
+          setUserProfile(profile);
+        }
+      }
+      
       setLoading(false);
     });
 
@@ -177,7 +237,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, getUserRole }}>
+    <AuthContext.Provider value={{ user, session, userProfile, loading, signIn, signUp, signOut, getUserRole }}>
       {children}
     </AuthContext.Provider>
   );

@@ -96,7 +96,7 @@ const LandlordDashboard = () => {
           </TabsContent>
 
           <TabsContent value="listings">
-            <FeatureGate permission="manage_properties">
+            <FeatureGate permission="manage_listings">
               <ListingsSection listings={listings} />
             </FeatureGate>
           </TabsContent>

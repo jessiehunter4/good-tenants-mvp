@@ -9,6 +9,8 @@ interface AgentHeaderProps {
 const AgentHeader = ({ email, onSignOut }: AgentHeaderProps) => {
   return (
     <DashboardHeader 
+      title="Agent Dashboard"
+      subtitle="Manage your listings and find quality tenants"
       email={email}
       onSignOut={onSignOut}
       role="agent"
