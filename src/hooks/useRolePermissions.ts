@@ -2,106 +2,132 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 
-export type UserRole = "tenant" | "agent" | "landlord" | "admin";
-export type AccessTier = "basic" | "verified" | "premium";
 export type Permission = 
   | "view_tenant_directory"
   | "create_listing"
-  | "send_invitations"
-  | "access_analytics"
-  | "manage_properties"
-  | "contact_tenants"
-  | "view_property_details"
-  | "manage_users"
-  | "view_admin_dashboard";
+  | "manage_listings"
+  | "admin_access"
+  | "create_invite"
+  | "view_invites"
+  | "profile_management"
+  | "use_messaging"
+  | "schedule_showings"
+  | "review_applications"
+  | "advanced_screening";
+
+export type AccessTier = "basic" | "verified" | "premium";
+
+export type RoleType = "tenant" | "agent" | "landlord" | "admin";
 
 interface RolePermissions {
-  role: UserRole | null;
-  tier: AccessTier;
-  permissions: Permission[];
-  isVerified: boolean;
-  canAccess: (permission: Permission) => boolean;
-  hasRole: (role: UserRole) => boolean;
-  loading: boolean;
+  [key: string]: {
+    permissions: Permission[];
+    tier: AccessTier;
+  };
 }
 
-// Define permission sets for each role and tier
-const ROLE_PERMISSIONS: Record<UserRole, Record<AccessTier, Permission[]>> = {
+const ROLE_PERMISSIONS: RolePermissions = {
   tenant: {
-    basic: ["view_property_details"],
-    verified: ["view_property_details", "contact_tenants"],
-    premium: ["view_property_details", "contact_tenants", "access_analytics"]
+    permissions: ["profile_management", "view_invites", "use_messaging", "schedule_showings"],
+    tier: "basic"
   },
   agent: {
-    basic: ["create_listing", "manage_properties", "view_property_details"],
-    verified: ["create_listing", "manage_properties", "view_property_details", "view_tenant_directory", "send_invitations"],
-    premium: ["create_listing", "manage_properties", "view_property_details", "view_tenant_directory", "send_invitations", "access_analytics", "contact_tenants"]
+    permissions: [
+      "view_tenant_directory", 
+      "create_listing", 
+      "manage_listings", 
+      "create_invite", 
+      "profile_management", 
+      "view_invites", 
+      "use_messaging", 
+      "schedule_showings",
+      "review_applications"
+    ],
+    tier: "basic"
   },
   landlord: {
-    basic: ["create_listing", "manage_properties", "view_property_details"],
-    verified: ["create_listing", "manage_properties", "view_property_details", "view_tenant_directory", "send_invitations"],
-    premium: ["create_listing", "manage_properties", "view_property_details", "view_tenant_directory", "send_invitations", "access_analytics", "contact_tenants"]
+    permissions: [
+      "view_tenant_directory", 
+      "create_listing", 
+      "manage_listings", 
+      "create_invite", 
+      "profile_management", 
+      "view_invites", 
+      "use_messaging", 
+      "schedule_showings",
+      "review_applications"
+    ],
+    tier: "basic"
   },
   admin: {
-    basic: ["manage_users", "view_admin_dashboard", "access_analytics"],
-    verified: ["manage_users", "view_admin_dashboard", "access_analytics"],
-    premium: ["manage_users", "view_admin_dashboard", "access_analytics"]
+    permissions: [
+      "view_tenant_directory", 
+      "create_listing", 
+      "manage_listings", 
+      "admin_access", 
+      "create_invite", 
+      "profile_management", 
+      "view_invites", 
+      "use_messaging", 
+      "schedule_showings",
+      "review_applications", 
+      "advanced_screening"
+    ],
+    tier: "premium"
   }
 };
 
-export const useRolePermissions = (): RolePermissions => {
-  const { user, getUserRole } = useAuth();
-  const [role, setRole] = useState<UserRole | null>(null);
+interface VerificationStatus {
+  [key: string]: boolean;
+}
+
+const VERIFICATION_STATUS: VerificationStatus = {
+  incomplete: false,
+  basic: false,
+  verified: true,
+  premium: true
+};
+
+export const useRolePermissions = () => {
+  const { user, userProfile } = useAuth();
+  const [role, setRole] = useState<RoleType>("tenant");
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [tier, setTier] = useState<AccessTier>("basic");
-  const [isVerified, setIsVerified] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchUserPermissions = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+    if (user?.role) {
+      const userRole = user.role as RoleType;
+      setRole(userRole);
 
-      try {
-        const userRole = await getUserRole();
-        setRole(userRole as UserRole);
+      // Set permissions based on role
+      const rolePerms = ROLE_PERMISSIONS[userRole]?.permissions || [];
+      setPermissions(rolePerms);
 
-        // Fetch user's tier and verification status based on their profile
-        // This would typically come from the user's profile table
-        // For now, we'll determine it based on profile status
-        if (userRole) {
-          // TODO: Fetch actual tier and verification status from profile
-          setTier("basic"); // Default tier
-          setIsVerified(false); // Default verification status
+      // Determine tier based on profile status
+      if (userProfile?.status) {
+        const profileStatus = userProfile.status;
+        if (profileStatus === "premium") {
+          setTier("premium");
+        } else if (profileStatus === "verified") {
+          setTier("verified");
+        } else {
+          setTier("basic");
         }
-      } catch (error) {
-        console.error("Error fetching user permissions:", error);
-      } finally {
-        setLoading(false);
+        setIsVerified(VERIFICATION_STATUS[profileStatus] || false);
       }
-    };
-
-    fetchUserPermissions();
-  }, [user, getUserRole]);
-
-  const permissions = role ? ROLE_PERMISSIONS[role][tier] : [];
+    }
+  }, [user, userProfile]);
 
   const canAccess = (permission: Permission): boolean => {
     return permissions.includes(permission);
   };
 
-  const hasRole = (checkRole: UserRole): boolean => {
-    return role === checkRole;
-  };
-
   return {
     role,
-    tier,
     permissions,
+    tier,
     isVerified,
     canAccess,
-    hasRole,
-    loading
   };
 };
