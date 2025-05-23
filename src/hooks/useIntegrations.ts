@@ -20,7 +20,17 @@ export const useIntegrations = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setIntegrations(data || []);
+      
+      // Type cast the data to ensure proper typing
+      const typedData = (data || []).map(item => ({
+        ...item,
+        integration_type: item.integration_type as Integration['integration_type'],
+        status: item.status as Integration['status'],
+        test_result: item.test_result as Integration['test_result'],
+        config: item.config as Record<string, any>
+      }));
+      
+      setIntegrations(typedData);
     } catch (error) {
       console.error("Error fetching integrations:", error);
       toast({
@@ -42,7 +52,19 @@ export const useIntegrations = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setIntegrationRequests(data || []);
+      
+      // Type cast the data to ensure proper typing
+      const typedData = (data || []).map(item => ({
+        ...item,
+        priority: item.priority as IntegrationRequest['priority'],
+        status: item.status as IntegrationRequest['status'],
+        user: item.user ? {
+          email: item.user.email,
+          role: item.user.role
+        } : undefined
+      }));
+      
+      setIntegrationRequests(typedData);
     } catch (error) {
       console.error("Error fetching integration requests:", error);
       toast({
@@ -80,7 +102,17 @@ export const useIntegrations = () => {
         .limit(50);
 
       if (error) throw error;
-      setAuditLogs(data || []);
+      
+      // Type cast the data to ensure proper typing
+      const typedData = (data || []).map(item => ({
+        ...item,
+        details: item.details as Record<string, any>,
+        user: item.user ? {
+          email: item.user.email
+        } : undefined
+      }));
+      
+      setAuditLogs(typedData);
     } catch (error) {
       console.error("Error fetching audit logs:", error);
     }
