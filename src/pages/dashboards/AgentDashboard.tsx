@@ -4,6 +4,7 @@ import AgentHeader from "@/components/agent/AgentHeader";
 import ProfileSummary from "@/components/agent/ProfileSummary";
 import ListingsSection from "@/components/agent/ListingsSection";
 import TenantDirectory from "@/components/agent/TenantDirectory";
+import { FeatureGate } from "@/components/access";
 import { useAgentData } from "@/hooks/useAgentData";
 
 const AgentDashboard = () => {
@@ -41,13 +42,23 @@ const AgentDashboard = () => {
           </TabsList>
 
           <TabsContent value="tenants">
-            <TenantDirectory 
-              tenants={tenants}
-              profileStatus={profile?.status || 'incomplete'}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onSendInvite={sendInvite}
-            />
+            <FeatureGate 
+              permission="view_tenant_directory"
+              requiredTier="verified"
+              showUpgrade={true}
+              onUpgrade={() => {
+                // TODO: Implement upgrade/verification flow
+                console.log("Upgrade clicked");
+              }}
+            >
+              <TenantDirectory 
+                tenants={tenants}
+                profileStatus={profile?.status || 'incomplete'}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                onSendInvite={sendInvite}
+              />
+            </FeatureGate>
           </TabsContent>
 
           <TabsContent value="listings">

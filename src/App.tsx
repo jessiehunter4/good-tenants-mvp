@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { RoleBasedRoute } from "./components/access";
 import LandingPage from "./pages/LandingPage";
 import SummerLandingPage from "./pages/SummerLandingPage";
 import Auth from "./pages/Auth";
@@ -48,39 +49,53 @@ const App = () => (
             {/* Onboarding Routes */}
             <Route path="/onboard-tenant" element={
               <ProtectedRoute>
-                <OnboardTenant />
+                <RoleBasedRoute allowedRoles={["tenant"]}>
+                  <OnboardTenant />
+                </RoleBasedRoute>
               </ProtectedRoute>
             } />
             <Route path="/onboard-agent" element={
               <ProtectedRoute>
-                <OnboardAgent />
+                <RoleBasedRoute allowedRoles={["agent"]}>
+                  <OnboardAgent />
+                </RoleBasedRoute>
               </ProtectedRoute>
             } />
             <Route path="/onboard-landlord" element={
               <ProtectedRoute>
-                <OnboardLandlord />
+                <RoleBasedRoute allowedRoles={["landlord"]}>
+                  <OnboardLandlord />
+                </RoleBasedRoute>
               </ProtectedRoute>
             } />
             
             {/* Role-specific Dashboard Routes */}
             <Route path="/dashboard-tenant" element={
               <ProtectedRoute>
-                <TenantDashboard />
+                <RoleBasedRoute allowedRoles={["tenant"]}>
+                  <TenantDashboard />
+                </RoleBasedRoute>
               </ProtectedRoute>
             } />
             <Route path="/dashboard-agent" element={
               <ProtectedRoute>
-                <AgentDashboard />
+                <RoleBasedRoute allowedRoles={["agent"]}>
+                  <AgentDashboard />
+                </RoleBasedRoute>
               </ProtectedRoute>
             } />
             <Route path="/dashboard-landlord" element={
               <ProtectedRoute>
-                <LandlordDashboard />
+                <RoleBasedRoute allowedRoles={["landlord"]}>
+                  <LandlordDashboard />
+                </RoleBasedRoute>
               </ProtectedRoute>
             } />
             <Route path="/admin-dashboard" element={
               <ProtectedRoute>
-                <AdminDashboard />
+                <RoleBasedRoute allowedRoles={["admin"]}>
+                  <AdminDashboard />
+                </RoleBasedRoute>
               </ProtectedRoute>
             } />
             
