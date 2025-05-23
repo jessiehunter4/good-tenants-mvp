@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -47,7 +46,7 @@ export const useIntegrations = () => {
         .from("integration_requests")
         .select(`
           *,
-          user:requested_by(email, role)
+          requested_by_user:users!integration_requests_requested_by_fkey(email, role)
         `)
         .order("created_at", { ascending: false });
 
@@ -58,9 +57,9 @@ export const useIntegrations = () => {
         ...item,
         priority: item.priority as IntegrationRequest['priority'],
         status: item.status as IntegrationRequest['status'],
-        user: item.user ? {
-          email: item.user.email,
-          role: item.user.role
+        user: item.requested_by_user ? {
+          email: item.requested_by_user.email,
+          role: item.requested_by_user.role
         } : undefined
       }));
       
@@ -96,7 +95,7 @@ export const useIntegrations = () => {
         .from("integration_audit_log")
         .select(`
           *,
-          user:performed_by(email)
+          performed_by_user:users!integration_audit_log_performed_by_fkey(email)
         `)
         .order("created_at", { ascending: false })
         .limit(50);
@@ -107,8 +106,8 @@ export const useIntegrations = () => {
       const typedData = (data || []).map(item => ({
         ...item,
         details: item.details as Record<string, any>,
-        user: item.user ? {
-          email: item.user.email
+        user: item.performed_by_user ? {
+          email: item.performed_by_user.email
         } : undefined
       }));
       
