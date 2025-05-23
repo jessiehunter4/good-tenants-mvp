@@ -25,4 +25,15 @@ export interface TenantProfile {
   screening_status: string | null;
   last_activity: string | null;
   contact_preferences: any | null;
+  // New rental preference fields
+  desired_move_date: string | null;
+  move_date_flexibility: string | null;
+  max_monthly_rent: number | null;
+  desired_cities: string[] | null;
+  desired_state: string | null;
+  desired_zip_code: string | null;
+  desired_property_types: string[] | null;
+  min_bedrooms: number | null;
+  min_bathrooms: number | null;
+  pets_allowed: boolean | null;
 }

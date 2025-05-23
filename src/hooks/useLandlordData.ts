@@ -37,17 +37,21 @@ export const useLandlordData = () => {
         if (profileError) throw profileError;
         setProfile(profileData as LandlordProfile);
 
-        // Fetch listings
+        // Fetch listings with enhanced fields
         const { data: listingsData, error: listingsError } = await supabase
           .from("listings")
           .select("*")
-          .eq("owner_id", user.id);
+          .eq("owner_id", user.id)
+          .order("created_at", { ascending: false });
 
         if (listingsError) throw listingsError;
         setListings(listingsData as Listing[]);
 
-        // Only fetch tenant directory if landlord is verified
-        if (profileData && (profileData.status === "verified" || profileData.status === "premium")) {
+        // Only fetch tenant directory if landlord is verified AND has at least one active listing
+        const hasActiveListings = listingsData && listingsData.length > 0;
+        const isVerified = profileData && (profileData.status === "verified" || profileData.status === "premium");
+        
+        if (isVerified && hasActiveListings) {
           // Join tenant_profiles with users to get email
           // Updated query to include both verified and pre-screened tenants
           const { data: tenantsData, error: tenantsError } = await supabase
@@ -67,6 +71,13 @@ export const useLandlordData = () => {
           }));
           
           setTenants(formattedTenants as TenantProfile[]);
+        } else if (isVerified && !hasActiveListings) {
+          // Show message that they need to create a listing
+          toast({
+            title: "Create a property listing",
+            description: "You need to add at least one property listing to access the tenant directory.",
+            variant: "default",
+          });
         }
       } catch (error) {
         console.error("Error fetching landlord data:", error);
@@ -109,6 +120,13 @@ export const useLandlordData = () => {
   // Filter tenants based on search query
   const filteredTenants = filterTenantsByQuery(tenants, searchQuery);
 
+  // Check if landlord can access tenant directory
+  const canAccessTenantDirectory = () => {
+    const isVerified = profile && (profile.status === "verified" || profile.status === "premium");
+    const hasListings = listings.length > 0;
+    return isVerified && hasListings;
+  };
+
   return {
     user,
     profile,
@@ -118,6 +136,7 @@ export const useLandlordData = () => {
     searchQuery,
     setSearchQuery,
     handleSendInvite,
+    canAccessTenantDirectory: canAccessTenantDirectory(),
     signOut
   };
 };

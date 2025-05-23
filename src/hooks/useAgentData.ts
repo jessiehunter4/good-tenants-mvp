@@ -64,7 +64,7 @@ export const useAgentData = () => {
         if (profileError) throw profileError;
         setProfile(profileData as RealtorProfile);
 
-        // Fetch listings
+        // Fetch listings with enhanced fields
         const { data: listingsData, error: listingsError } = await supabase
           .from("listings")
           .select("*")
@@ -74,8 +74,11 @@ export const useAgentData = () => {
         if (listingsError) throw listingsError;
         setListings(listingsData as Listing[]);
 
-        // Only fetch tenant directory if agent is verified
-        if (profileData && (profileData.status === "verified" || profileData.status === "premium")) {
+        // Only fetch tenant directory if agent is verified AND has at least one active listing
+        const hasActiveListings = listingsData && listingsData.length > 0;
+        const isVerified = profileData && (profileData.status === "verified" || profileData.status === "premium");
+        
+        if (isVerified && hasActiveListings) {
           // Join tenant_profiles with users to get email
           const { data: tenantsData, error: tenantsError } = await supabase
             .from("tenant_profiles")
@@ -95,6 +98,13 @@ export const useAgentData = () => {
           }));
           
           setTenants(formattedTenants as TenantProfile[]);
+        } else if (isVerified && !hasActiveListings) {
+          // Show message that they need to create a listing
+          toast({
+            title: "Create a property listing",
+            description: "You need to add at least one property listing to access the tenant directory.",
+            variant: "default",
+          });
         }
       } catch (error) {
         console.error("Error fetching agent data:", error);
@@ -208,6 +218,13 @@ export const useAgentData = () => {
     }
   };
 
+  // Check if agent can access tenant directory
+  const canAccessTenantDirectory = () => {
+    const isVerified = profile && (profile.status === "verified" || profile.status === "premium");
+    const hasListings = listings.length > 0;
+    return isVerified && hasListings;
+  };
+
   return {
     user,
     profile,
@@ -217,6 +234,7 @@ export const useAgentData = () => {
     searchQuery,
     setSearchQuery,
     sendInvite,
+    canAccessTenantDirectory: canAccessTenantDirectory(),
     signOut
   };
 };

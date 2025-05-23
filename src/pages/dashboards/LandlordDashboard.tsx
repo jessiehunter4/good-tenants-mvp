@@ -1,12 +1,17 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import LandlordHeader from "@/components/landlord/LandlordHeader";
 import ProfileSummary from "@/components/landlord/ProfileSummary";
 import ListingsSection from "@/components/landlord/ListingsSection";
 import TenantDirectory from "@/components/landlord/tenant-directory";
 import { useLandlordData } from "@/hooks/useLandlordData";
+import EmptyState from "@/components/tenant/EmptyState";
 
 const LandlordDashboard = () => {
+  const navigate = useNavigate();
   const { 
     user, 
     profile, 
@@ -15,7 +20,8 @@ const LandlordDashboard = () => {
     loading, 
     searchQuery,
     setSearchQuery,
-    handleSendInvite, 
+    handleSendInvite,
+    canAccessTenantDirectory,
     signOut
   } = useLandlordData();
 
@@ -26,6 +32,10 @@ const LandlordDashboard = () => {
       </div>
     );
   }
+
+  const handleCreateProperty = () => {
+    navigate("/create-property");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -41,14 +51,38 @@ const LandlordDashboard = () => {
           </TabsList>
 
           <TabsContent value="tenants">
-            <TenantDirectory 
-              tenants={tenants}
-              profileStatus={profile?.status || 'incomplete'}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onSendInvite={handleSendInvite}
-              properties={listings}
-            />
+            {canAccessTenantDirectory ? (
+              <TenantDirectory 
+                tenants={tenants}
+                profileStatus={profile?.status || 'incomplete'}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                onSendInvite={handleSendInvite}
+                properties={listings}
+              />
+            ) : (
+              <EmptyState
+                icon={<Plus className="h-8 w-8 text-gray-400" />}
+                title="Create a Property Listing First"
+                description={
+                  listings.length === 0 
+                    ? "To access our tenant directory, you need to create at least one property listing. This ensures all landlords have active properties available for tenants."
+                    : "You need to be verified to access the tenant directory."
+                }
+                action={
+                  listings.length === 0 ? (
+                    <Button onClick={handleCreateProperty}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Your First Property
+                    </Button>
+                  ) : (
+                    <Button disabled>
+                      Verification Required
+                    </Button>
+                  )
+                }
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="listings">
