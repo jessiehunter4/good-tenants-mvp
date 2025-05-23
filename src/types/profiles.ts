@@ -1,4 +1,5 @@
 
+
 export interface LandlordProfile {
   id: string;
   status: string;
@@ -12,6 +13,7 @@ export interface LandlordProfile {
 
 export interface TenantProfile {
   id: string;
+  user_email: string;
   status: string;
   move_in_date: string | null;
   household_size: number | null;
@@ -36,3 +38,4 @@ export interface TenantProfile {
   min_bathrooms: number | null;
   pets_allowed: boolean | null;
 }
+
