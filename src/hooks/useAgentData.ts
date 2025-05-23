@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +9,9 @@ export interface RealtorProfile {
   license_number: string | null;
   agency: string | null;
   years_experience: number | null;
+  is_verified: boolean | null;
+  specialties: string[] | null;
+  bio: string | null;
 }
 
 export interface Listing {

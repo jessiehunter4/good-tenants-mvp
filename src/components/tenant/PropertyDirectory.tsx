@@ -44,6 +44,10 @@ const PropertyDirectory = ({ listings, onExpressInterest, onViewProperty }: Prop
   const formatPrice = (price: number) => `$${price.toLocaleString()}/month`;
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
 
+  const handlePriceRangeChange = (value: number[]) => {
+    setPriceRange([value[0], value[1]]);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -68,8 +72,8 @@ const PropertyDirectory = ({ listings, onExpressInterest, onViewProperty }: Prop
             <div>
               <label className="text-sm font-medium mb-2 block">Price Range</label>
               <Slider
-                value={priceRange}
-                onValueChange={setPriceRange}
+                value={[priceRange[0], priceRange[1]]}
+                onValueChange={handlePriceRangeChange}
                 max={10000}
                 min={0}
                 step={100}
