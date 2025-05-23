@@ -2,6 +2,7 @@
 import { User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Card,
   CardContent,
@@ -15,12 +16,31 @@ import { TenantProfile } from "@/types/profiles";
 interface TenantCardProps {
   tenant: TenantProfile;
   onSendInvite: (tenantId: string) => void;
+  onViewProfile: (tenant: TenantProfile) => void;
 }
 
-const TenantCard = ({ tenant, onSendInvite }: TenantCardProps) => {
+const TenantCard = ({ tenant, onSendInvite, onViewProfile }: TenantCardProps) => {
   const formattedIncome = (income: number | null) => {
     if (!income) return "Not specified";
     return `$${income.toLocaleString()}/month`;
+  };
+  
+  const getInitials = (email: string) => {
+    return email.substring(0, 2).toUpperCase();
+  };
+  
+  const getScreeningStatusBadge = (status: string | null) => {
+    if (!status) return null;
+    
+    switch (status) {
+      case 'pre-screened':
+        return <Badge className="bg-green-100 text-green-800">Pre-Screened</Badge>;
+      case 'completed':
+        return <Badge className="bg-blue-100 text-blue-800">Completed</Badge>;
+      case 'in-process':
+      default:
+        return <Badge className="bg-yellow-100 text-yellow-800">In Process</Badge>;
+    }
   };
 
   return (
@@ -28,9 +48,12 @@ const TenantCard = ({ tenant, onSendInvite }: TenantCardProps) => {
       <CardHeader className="bg-blue-50 pb-3">
         <div className="flex justify-between items-start">
           <div className="flex items-center space-x-2">
-            <div className="bg-blue-100 p-2 rounded-full">
-              <User className="h-5 w-5 text-blue-600" />
-            </div>
+            <Avatar>
+              <AvatarImage src={tenant.profile_image_url || undefined} />
+              <AvatarFallback className="bg-blue-100 text-blue-600">
+                {getInitials(tenant.user_email)}
+              </AvatarFallback>
+            </Avatar>
             <div>
               <p className="font-medium">{tenant.user_email}</p>
               <p className="text-sm text-gray-500">
@@ -39,14 +62,12 @@ const TenantCard = ({ tenant, onSendInvite }: TenantCardProps) => {
             </div>
           </div>
           <div className="flex gap-2">
+            {getScreeningStatusBadge(tenant.screening_status)}
             {tenant.is_pre_screened && (
               <Badge className="bg-green-100 text-green-800">
-                Pre-Screened
+                Verified
               </Badge>
             )}
-            <Badge className="bg-green-100 text-green-800">
-              Verified
-            </Badge>
           </div>
         </div>
       </CardHeader>
@@ -78,7 +99,14 @@ const TenantCard = ({ tenant, onSendInvite }: TenantCardProps) => {
           )}
         </div>
       </CardContent>
-      <CardFooter className="border-t bg-gray-50">
+      <CardFooter className="border-t bg-gray-50 flex flex-col space-y-2 p-3">
+        <Button 
+          className="w-full" 
+          onClick={() => onViewProfile(tenant)}
+          variant="outline"
+        >
+          View Full Profile
+        </Button>
         <Button 
           className="w-full" 
           onClick={() => onSendInvite(tenant.id)}

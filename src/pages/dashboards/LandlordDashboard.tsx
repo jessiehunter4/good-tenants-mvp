@@ -27,6 +27,11 @@ const LandlordDashboard = () => {
     );
   }
 
+  // Extended handleSendInvite to include property and message
+  const handleSendInviteWithDetails = (tenantId: string, propertyId: string, message: string) => {
+    handleSendInvite(tenantId, propertyId, message);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <LandlordHeader email={user?.email} onSignOut={signOut} />
@@ -46,7 +51,8 @@ const LandlordDashboard = () => {
               profileStatus={profile?.status || 'incomplete'}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
-              onSendInvite={handleSendInvite}
+              onSendInvite={handleSendInviteWithDetails}
+              properties={listings}
             />
           </TabsContent>
 

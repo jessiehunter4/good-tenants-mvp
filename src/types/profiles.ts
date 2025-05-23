@@ -21,4 +21,8 @@ export interface TenantProfile {
   preferred_locations: string[] | null;
   bio: string | null;
   is_pre_screened: boolean | null;
+  profile_image_url: string | null;
+  screening_status: string | null;
+  last_activity: string | null;
+  contact_preferences: any | null;
 }

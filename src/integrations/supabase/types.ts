@@ -195,37 +195,52 @@ export type Database = {
       tenant_profiles: {
         Row: {
           bio: string | null
+          contact_preferences: Json | null
           created_at: string
           household_income: number | null
           household_size: number | null
           id: string
+          is_pre_screened: boolean | null
+          last_activity: string | null
           move_in_date: string | null
           pets: boolean | null
           preferred_locations: string[] | null
+          profile_image_url: string | null
+          screening_status: string | null
           status: Database["public"]["Enums"]["profile_status"]
           updated_at: string
         }
         Insert: {
           bio?: string | null
+          contact_preferences?: Json | null
           created_at?: string
           household_income?: number | null
           household_size?: number | null
           id: string
+          is_pre_screened?: boolean | null
+          last_activity?: string | null
           move_in_date?: string | null
           pets?: boolean | null
           preferred_locations?: string[] | null
+          profile_image_url?: string | null
+          screening_status?: string | null
           status?: Database["public"]["Enums"]["profile_status"]
           updated_at?: string
         }
         Update: {
           bio?: string | null
+          contact_preferences?: Json | null
           created_at?: string
           household_income?: number | null
           household_size?: number | null
           id?: string
+          is_pre_screened?: boolean | null
+          last_activity?: string | null
           move_in_date?: string | null
           pets?: boolean | null
           preferred_locations?: string[] | null
+          profile_image_url?: string | null
+          screening_status?: string | null
           status?: Database["public"]["Enums"]["profile_status"]
           updated_at?: string
         }

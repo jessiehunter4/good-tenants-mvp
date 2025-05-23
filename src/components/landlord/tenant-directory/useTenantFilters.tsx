@@ -19,6 +19,7 @@ export const useTenantFilters = (initialTenants: TenantProfile[], searchQuery: s
   const [locationQuery, setLocationQuery] = useState("");
   const [householdSize, setHouseholdSize] = useState<number | null>(null);
   const [petsFilter, setPetsFilter] = useState<'any' | 'yes' | 'no'>('any');
+  const [screeningStatusFilter, setScreeningStatusFilter] = useState<string | null>(null);
   
   const clearFilters = useCallback(() => {
     setIncomeRange([0, 20000]);
@@ -27,6 +28,7 @@ export const useTenantFilters = (initialTenants: TenantProfile[], searchQuery: s
     setLocationQuery("");
     setHouseholdSize(null);
     setPetsFilter('any');
+    setScreeningStatusFilter(null);
   }, []);
   
   // Apply filters sequentially
@@ -35,7 +37,13 @@ export const useTenantFilters = (initialTenants: TenantProfile[], searchQuery: s
   const tenantsByIncome = filterTenantsByIncome(tenantsByLocation, incomeRange);
   const tenantsByDate = filterTenantsByMoveInDate(tenantsByIncome, selectedDate, isFilteringByDate);
   const tenantsByHousehold = filterTenantsByHouseholdSize(tenantsByDate, householdSize);
-  const filteredTenants = filterTenantsByPets(tenantsByHousehold, petsFilter);
+  
+  // Filter by screening status if needed
+  const tenantsByScreeningStatus = screeningStatusFilter 
+    ? tenantsByHousehold.filter(tenant => tenant.screening_status === screeningStatusFilter)
+    : tenantsByHousehold;
+    
+  const filteredTenants = filterTenantsByPets(tenantsByScreeningStatus, petsFilter);
 
   return {
     filteredTenants,
@@ -51,6 +59,8 @@ export const useTenantFilters = (initialTenants: TenantProfile[], searchQuery: s
     setHouseholdSize,
     petsFilter,
     setPetsFilter,
+    screeningStatusFilter,
+    setScreeningStatusFilter,
     clearFilters
   };
 };

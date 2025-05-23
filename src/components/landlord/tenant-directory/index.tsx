@@ -8,10 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import SearchBar from "./SearchBar";
 import FilterBar from "./FilterBar";
 import AdvancedFilters from "./AdvancedFilters";
 import TenantGrid from "./TenantGrid";
+import PropertySelectionModal from "./PropertySelectionModal";
 import VerificationRequired from "./VerificationRequired";
 import { useTenantFilters } from "./useTenantFilters";
 
@@ -20,7 +22,8 @@ interface TenantDirectoryProps {
   profileStatus: string;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  onSendInvite: (tenantId: string) => void;
+  onSendInvite: (tenantId: string, propertyId: string, message: string) => void;
+  properties: any[]; // Array of properties from landlord/agent
 }
 
 const TenantDirectory = ({ 
@@ -28,9 +31,13 @@ const TenantDirectory = ({
   profileStatus, 
   searchQuery, 
   onSearchChange, 
-  onSendInvite 
+  onSendInvite,
+  properties = []
 }: TenantDirectoryProps) => {
   const isVerified = profileStatus === "verified" || profileStatus === "premium";
+  const { toast } = useToast();
+  
+  const [invitingTenant, setInvitingTenant] = useState<string | null>(null);
   
   const {
     filteredTenants,
@@ -53,6 +60,34 @@ const TenantDirectory = ({
     onSearchChange(""); // Clear main search query
     clearFilters(); // Clear all other filters
   };
+  
+  const handleSendInvite = (tenantId: string) => {
+    if (properties.length === 0) {
+      toast({
+        title: "No Properties Available",
+        description: "You need to add properties before inviting tenants.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setInvitingTenant(tenantId);
+  };
+  
+  const handleConfirmInvite = (propertyId: string, message: string) => {
+    if (invitingTenant) {
+      onSendInvite(invitingTenant, propertyId, message);
+      setInvitingTenant(null);
+      
+      toast({
+        title: "Invitation Sent",
+        description: "The tenant has been invited to view your property.",
+      });
+    }
+  };
+  
+  // Find the tenant email for the invitation modal
+  const invitedTenant = tenants.find(t => t.id === invitingTenant);
 
   return (
     <Card>
@@ -97,10 +132,20 @@ const TenantDirectory = ({
         {isVerified ? (
           <TenantGrid 
             tenants={filteredTenants}
-            onSendInvite={onSendInvite}
+            onSendInvite={handleSendInvite}
           />
         ) : (
           <VerificationRequired />
+        )}
+        
+        {invitingTenant && (
+          <PropertySelectionModal
+            isOpen={!!invitingTenant}
+            onClose={() => setInvitingTenant(null)}
+            onSendInvite={handleConfirmInvite}
+            properties={properties}
+            tenantName={invitedTenant?.user_email || "tenant"}
+          />
         )}
       </CardContent>
     </Card>
