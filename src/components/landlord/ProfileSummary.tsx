@@ -9,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { LandlordProfile } from "@/hooks/useLandlordData";
+import ProfileVerificationBadge from "@/components/shared/ProfileVerificationBadge";
 
 interface ProfileSummaryProps {
   profile: LandlordProfile;
@@ -24,18 +24,16 @@ const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Welcome, Landlord</CardTitle>
+            <CardTitle>Welcome, Property Owner</CardTitle>
             <CardDescription>
               {profile.property_count ? `Managing ${profile.property_count} properties` : "Complete your profile details"}
             </CardDescription>
           </div>
-          <Badge className={
-            profile.status === 'verified' || profile.status === 'premium' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-yellow-100 text-yellow-800'
-          }>
-            {profile.status.charAt(0).toUpperCase() + profile.status.slice(1)}
-          </Badge>
+          <ProfileVerificationBadge 
+            status={profile.status}
+            userRole="landlord"
+            isVerified={profile.is_verified}
+          />
         </div>
       </CardHeader>
       <CardContent>
@@ -59,6 +57,21 @@ const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
             </div>
           )}
         </div>
+
+        {profile.bio && (
+          <div className="mt-4">
+            <h3 className="font-medium text-gray-700">Bio</h3>
+            <p className="text-sm text-gray-600">{profile.bio}</p>
+          </div>
+        )}
+
+        {profile.status === 'incomplete' && (
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              <strong>Action Required:</strong> Complete your profile to access all features and start finding tenants.
+            </p>
+          </div>
+        )}
       </CardContent>
       <CardFooter>
         <Button onClick={() => navigate("/onboard-landlord")}>

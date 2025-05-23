@@ -1,9 +1,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { RealtorProfile } from "@/hooks/useAgentData";
+import ProfileVerificationBadge from "@/components/shared/ProfileVerificationBadge";
 
 interface ProfileSummaryProps {
   profile: RealtorProfile;
@@ -17,18 +17,17 @@ const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Welcome, Agent</CardTitle>
+            <CardTitle>Welcome, Licensed Agent</CardTitle>
             <CardDescription>
               {profile.agency ? `${profile.agency}` : "Complete your profile details"}
             </CardDescription>
           </div>
-          <Badge className={
-            profile.status === 'verified' || profile.status === 'premium' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-yellow-100 text-yellow-800'
-          }>
-            {profile.status.charAt(0).toUpperCase() + profile.status.slice(1)}
-          </Badge>
+          <ProfileVerificationBadge 
+            status={profile.status}
+            userRole="agent"
+            isVerified={profile.is_verified}
+            licenseNumber={profile.license_number}
+          />
         </div>
       </CardHeader>
       <CardContent>
@@ -45,7 +44,26 @@ const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
             <h3 className="font-medium text-gray-700">Years of Experience</h3>
             <p>{profile.years_experience !== null ? profile.years_experience : 'Not specified'}</p>
           </div>
+          <div>
+            <h3 className="font-medium text-gray-700">Specialties</h3>
+            <p>{profile.specialties?.join(', ') || 'Not specified'}</p>
+          </div>
         </div>
+
+        {profile.bio && (
+          <div className="mt-4">
+            <h3 className="font-medium text-gray-700">Bio</h3>
+            <p className="text-sm text-gray-600">{profile.bio}</p>
+          </div>
+        )}
+
+        {(profile.status === 'incomplete' || !profile.license_number) && (
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              <strong>Action Required:</strong> Complete your license verification to access the tenant directory and send invitations.
+            </p>
+          </div>
+        )}
       </CardContent>
       <CardFooter>
         <Button onClick={() => navigate("/onboard-agent")}>
