@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error('Error fetching tenant profile:', error);
             return null;
           }
-          return data as TenantProfile;
+          return data;
         }
         case 'agent': {
           const { data, error } = await supabase
@@ -65,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error('Error fetching realtor profile:', error);
             return null;
           }
-          return data as BaseProfile;
+          return data;
         }
         case 'landlord': {
           const { data, error } = await supabase
@@ -78,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error('Error fetching landlord profile:', error);
             return null;
           }
-          return data as LandlordProfile;
+          return data;
         }
         default:
           return null;

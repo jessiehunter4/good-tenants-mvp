@@ -12,7 +12,6 @@ export interface LandlordProfile {
 
 export interface TenantProfile {
   id: string;
-  user_email: string;
   status: string;
   move_in_date: string | null;
   household_size: number | null;
