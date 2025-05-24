@@ -1,16 +1,13 @@
 
 import { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-/**
- * @deprecated This hook should not be used on the Auth page as it causes flickering.
- * Use the AuthenticatedRedirect component in App.tsx instead for proper routing.
- */
-export const useRedirectAuthenticated = () => {
+const AuthenticatedRedirect = () => {
   const { user, getUserRole, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const hasRedirected = useRef(false);
 
   // Check if a user should be redirected to onboarding based on their role and profile status
@@ -98,9 +95,8 @@ export const useRedirectAuthenticated = () => {
     // Reset redirect flag when component mounts
     hasRedirected.current = false;
     
-    // CRITICAL FIX: Only proceed if not loading AND user exists (authenticated)
-    // This prevents the hook from running on the Auth page for non-authenticated users
-    if (!loading && user && !hasRedirected.current) {
+    // Only redirect authenticated users who are NOT on the auth page
+    if (!loading && user && !hasRedirected.current && location.pathname !== '/auth') {
       // Get user role from Supabase with a small delay to ensure auth context is stable
       const getUserRoleAndRedirect = async () => {
         try {
@@ -126,9 +122,9 @@ export const useRedirectAuthenticated = () => {
 
       getUserRoleAndRedirect();
     }
-  }, [user, loading, getUserRole, navigate]);
+  }, [user, loading, getUserRole, navigate, location.pathname]);
 
-  return { user };
+  return null; // This component doesn't render anything
 };
 
-export default useRedirectAuthenticated;
+export default AuthenticatedRedirect;
