@@ -24,7 +24,7 @@ const Navigation = () => {
           Sign In
         </Button>
         <Button 
-          onClick={() => navigate("/auth?tab=register")}
+          onClick={() => navigate("/summer")}
           className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300"
         >
           Join Now

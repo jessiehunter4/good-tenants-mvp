@@ -23,7 +23,7 @@ const CTASection = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
           <Button 
             size="lg" 
-            onClick={() => navigate("/auth?tab=register")}
+            onClick={() => navigate("/summer")}
             className="rounded-full bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
             Start Your Profile - It's Free

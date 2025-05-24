@@ -27,7 +27,7 @@ const HeroSection = ({ isVisible }: HeroSectionProps) => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
           <Button 
             size="lg" 
-            onClick={() => navigate("/auth?tab=register")}
+            onClick={() => navigate("/summer")}
             className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
           >
             Join Now
