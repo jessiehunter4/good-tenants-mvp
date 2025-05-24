@@ -20,10 +20,10 @@ interface AuthContextType {
   session: Session | null;
   userProfile: UserProfile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<User>;
   signUp: (email: string, password: string, role: string, adminCode?: string) => Promise<void>;
   signOut: () => Promise<void>;
-  getUserRole: () => Promise<string | null>;
+  getUserRole: (userId?: string) => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -96,7 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isMounted.current) return;
     
     try {
-      const role = await getUserRole();
+      const role = await getUserRole(userId);
       if (role && isMounted.current) {
         const profile = await fetchUserProfile(userId, role);
         if (isMounted.current) {
@@ -157,14 +157,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const getUserRole = async (): Promise<string | null> => {
-    if (!user) return null;
+  const getUserRole = async (userId?: string): Promise<string | null> => {
+    const targetUserId = userId || user?.id;
+    if (!targetUserId) return null;
     
     try {
       const { data, error } = await supabase
         .from("users")
         .select("role")
-        .eq("id", user.id)
+        .eq("id", targetUserId)
         .single();
       
       if (error) {
@@ -179,19 +180,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<User> => {
     try {
       // Validate email format
       if (!validateEmail(email)) {
         throw new Error("Invalid email format");
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) throw error;
+      
+      // Return the user from the session immediately
+      if (data.user) {
+        return data.user;
+      } else {
+        throw new Error("Login successful but no user data received");
+      }
     } catch (error: any) {
       toast({
         title: "Error signing in",

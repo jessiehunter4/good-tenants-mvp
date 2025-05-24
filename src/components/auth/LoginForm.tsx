@@ -49,35 +49,35 @@ export const LoginForm = ({ setActiveTab }: LoginFormProps) => {
       setIsLoading(true);
       console.log('Starting login process...');
       
-      await signIn(values.email, values.password);
+      // signIn now returns the user directly from the session
+      const loggedInUser = await signIn(values.email, values.password);
       
-      console.log('Login successful, getting user role and redirecting');
+      console.log('Login successful, user received:', loggedInUser.id);
       toast({
         title: "Login successful",
         description: "Welcome back! Redirecting you now...",
       });
       
-      // Get user role and redirect immediately after successful login
-      setTimeout(async () => {
-        try {
-          const role = await getUserRole();
-          console.log('User role retrieved:', role);
-          
-          if (role === 'admin') {
-            console.log('Redirecting admin to dashboard');
-            navigate("/admin-dashboard");
-          } else if (role) {
-            console.log(`Redirecting ${role} to dashboard`);
-            navigate(`/dashboard-${role}`);
-          } else {
-            console.log('No role found, redirecting to default dashboard');
-            navigate("/dashboard");
-          }
-        } catch (error) {
-          console.error("Error getting user role:", error);
+      // Use the returned user to get role immediately
+      try {
+        const role = await getUserRole(loggedInUser.id);
+        console.log('User role retrieved:', role);
+        
+        if (role === 'admin') {
+          console.log('Redirecting admin to dashboard');
+          navigate("/admin-dashboard");
+        } else if (role) {
+          console.log(`Redirecting ${role} to dashboard`);
+          navigate(`/dashboard-${role}`);
+        } else {
+          console.log('No role found, redirecting to default dashboard');
           navigate("/dashboard");
         }
-      }, 500);
+      } catch (roleError) {
+        console.error("Error getting user role:", roleError);
+        console.log('Falling back to default dashboard');
+        navigate("/dashboard");
+      }
       
     } catch (error) {
       console.error("Login error:", error);
