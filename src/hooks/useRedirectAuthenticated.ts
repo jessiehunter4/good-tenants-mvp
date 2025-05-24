@@ -94,7 +94,8 @@ export const useRedirectAuthenticated = () => {
     // Reset redirect flag when component mounts
     hasRedirected.current = false;
     
-    // Only proceed if not loading and user exists
+    // CRITICAL FIX: Only proceed if not loading AND user exists (authenticated)
+    // This prevents the hook from running on the Auth page for non-authenticated users
     if (!loading && user && !hasRedirected.current) {
       // Get user role from Supabase with a small delay to ensure auth context is stable
       const getUserRoleAndRedirect = async () => {
@@ -121,6 +122,7 @@ export const useRedirectAuthenticated = () => {
 
       getUserRoleAndRedirect();
     }
+    // Note: Removed the else clause that was causing issues for non-authenticated users
   }, [user, loading, getUserRole, navigate]);
 
   return { user };
