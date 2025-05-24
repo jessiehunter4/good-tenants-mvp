@@ -1,10 +1,8 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { LockIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,31 +16,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  RadioGroup,
-  RadioGroupItem
-} from "@/components/ui/radio-group";
-
-// Schema for registration form validation
-const registerSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  role: z.enum(["tenant", "agent", "landlord", "admin"], {
-    required_error: "Please select a role.",
-  }),
-  adminCode: z.string().optional(),
-}).refine((data) => {
-  // If role is admin, adminCode is required
-  if (data.role === "admin") {
-    return !!data.adminCode;
-  }
-  return true;
-}, {
-  message: "Admin registration code is required",
-  path: ["adminCode"],
-});
-
-export type RegisterFormValues = z.infer<typeof registerSchema>;
+import { registerSchema, RegisterFormValues } from "./RegisterFormSchema";
+import { AdminCodeField } from "./AdminCodeField";
+import { RoleSelectionField } from "./RoleSelectionField";
 
 interface RegisterFormProps {
   setActiveTab: (tab: string) => void;
@@ -119,7 +95,7 @@ export const RegisterForm = ({ setActiveTab }: RegisterFormProps) => {
         city: prefilledData.city
       }));
     }
-  }, [location.search]); // Removed 'form' from dependencies
+  }, [location.search]);
 
   // Watch for role changes to show/hide admin code field
   useEffect(() => {
@@ -182,75 +158,10 @@ export const RegisterForm = ({ setActiveTab }: RegisterFormProps) => {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="role"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>I am a:</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="flex flex-col space-y-1"
-                >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="tenant" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Tenant (I'm looking for a home)
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="agent" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Real Estate Agent
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="landlord" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Landlord/Property Owner
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="admin" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Administrator
-                    </FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        
+        <RoleSelectionField control={form.control} />
 
-        {showAdminCode && (
-          <FormField
-            control={form.control}
-            name="adminCode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Admin Registration Code</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input type="password" {...field} />
-                    <LockIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+        {showAdminCode && <AdminCodeField control={form.control} />}
 
         <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading ? "Creating account..." : "Create account"}
