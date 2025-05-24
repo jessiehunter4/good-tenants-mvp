@@ -47,12 +47,16 @@ export const LoginForm = ({ setActiveTab }: LoginFormProps) => {
   const onSubmit = async (values: LoginFormValues) => {
     try {
       setIsLoading(true);
-      console.log('Starting login process...');
+      console.log('LoginForm: Starting login process...');
+      
+      // Set flag to indicate fresh login is happening
+      sessionStorage.setItem('freshLogin', 'true');
+      console.log('LoginForm: Set freshLogin flag');
       
       // signIn now returns the user directly from the session
       const loggedInUser = await signIn(values.email, values.password);
       
-      console.log('Login successful, user received:', loggedInUser.id);
+      console.log('LoginForm: Login successful, user received:', loggedInUser.id);
       toast({
         title: "Login successful",
         description: "Welcome back! Redirecting you now...",
@@ -61,26 +65,43 @@ export const LoginForm = ({ setActiveTab }: LoginFormProps) => {
       // Use the returned user to get role immediately
       try {
         const role = await getUserRole(loggedInUser.id);
-        console.log('User role retrieved:', role);
+        console.log('LoginForm: User role retrieved:', role);
         
         if (role === 'admin') {
-          console.log('Redirecting admin to dashboard');
+          console.log('LoginForm: Redirecting admin to dashboard');
           navigate("/admin-dashboard");
         } else if (role) {
-          console.log(`Redirecting ${role} to dashboard`);
+          console.log(`LoginForm: Redirecting ${role} to dashboard`);
           navigate(`/dashboard-${role}`);
         } else {
-          console.log('No role found, redirecting to default dashboard');
+          console.log('LoginForm: No role found, redirecting to default dashboard');
           navigate("/dashboard");
         }
+        
+        // Clear the fresh login flag after successful redirect
+        setTimeout(() => {
+          sessionStorage.removeItem('freshLogin');
+          console.log('LoginForm: Cleared freshLogin flag after redirect');
+        }, 2000);
+        
       } catch (roleError) {
-        console.error("Error getting user role:", roleError);
-        console.log('Falling back to default dashboard');
+        console.error("LoginForm: Error getting user role:", roleError);
+        console.log('LoginForm: Falling back to default dashboard');
         navigate("/dashboard");
+        
+        // Clear the fresh login flag even on error
+        setTimeout(() => {
+          sessionStorage.removeItem('freshLogin');
+          console.log('LoginForm: Cleared freshLogin flag after error');
+        }, 2000);
       }
       
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("LoginForm: Login error:", error);
+      // Clear the fresh login flag on login failure
+      sessionStorage.removeItem('freshLogin');
+      console.log('LoginForm: Cleared freshLogin flag due to login error');
+      
       toast({
         title: "Login failed",
         description: "Please check your credentials and try again.",
