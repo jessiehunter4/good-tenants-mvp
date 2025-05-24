@@ -31,7 +31,7 @@ interface LoginFormProps {
 }
 
 export const LoginForm = ({ setActiveTab }: LoginFormProps) => {
-  const { signIn } = useAuth();
+  const { signIn, getUserRole } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -51,17 +51,33 @@ export const LoginForm = ({ setActiveTab }: LoginFormProps) => {
       
       await signIn(values.email, values.password);
       
-      console.log('Login successful, showing success message');
+      console.log('Login successful, getting user role and redirecting');
       toast({
         title: "Login successful",
         description: "Welcome back! Redirecting you now...",
       });
       
-      // Add a small delay before allowing redirect to ensure auth state is updated
-      setTimeout(() => {
-        console.log('Login process completed, auth context should handle redirect');
-        // The AuthenticatedRedirect component will handle the actual navigation
-      }, 1000);
+      // Get user role and redirect immediately after successful login
+      setTimeout(async () => {
+        try {
+          const role = await getUserRole();
+          console.log('User role retrieved:', role);
+          
+          if (role === 'admin') {
+            console.log('Redirecting admin to dashboard');
+            navigate("/admin-dashboard");
+          } else if (role) {
+            console.log(`Redirecting ${role} to dashboard`);
+            navigate(`/dashboard-${role}`);
+          } else {
+            console.log('No role found, redirecting to default dashboard');
+            navigate("/dashboard");
+          }
+        } catch (error) {
+          console.error("Error getting user role:", error);
+          navigate("/dashboard");
+        }
+      }, 500);
       
     } catch (error) {
       console.error("Login error:", error);

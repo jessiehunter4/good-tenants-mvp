@@ -123,22 +123,22 @@ const AuthenticatedRedirect = () => {
       // Clear the flag after a short delay to allow login to complete
       const timer = setTimeout(() => {
         isProcessingLogin.current = false;
-      }, 2000);
+      }, 3000); // Increased timeout to give login form time to handle its own redirect
       return () => clearTimeout(timer);
     }
     
     console.log('AuthenticatedRedirect - user:', !!user, 'loading:', loading, 'route:', location.pathname, 'isPublic:', isPublicRoute);
     
-    // CRITICAL FIX: Only redirect authenticated users who are NOT on public routes
-    // and not currently processing a login
+    // Only redirect authenticated users who are NOT on public routes
+    // and not currently processing a login (let LoginForm handle immediate post-login redirect)
     if (!loading && user && !hasRedirected.current && !isPublicRoute && !isProcessingLogin.current) {
       console.log('Starting redirect process for authenticated user');
       
-      // Get user role from Supabase with a delay to ensure auth context is stable
+      // Get user role from Supabase with a delay to ensure auth state is stable
       const getUserRoleAndRedirect = async () => {
         try {
           // Add a delay to ensure auth state is fully settled
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
           // Double-check we're still in a valid state for redirect
           if (hasRedirected.current || isProcessingLogin.current) {
