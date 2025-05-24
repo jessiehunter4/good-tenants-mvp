@@ -119,7 +119,7 @@ export const RegisterForm = ({ setActiveTab }: RegisterFormProps) => {
         city: prefilledData.city
       }));
     }
-  }, [location.search, form]);
+  }, [location.search]); // Removed 'form' from dependencies
 
   // Watch for role changes to show/hide admin code field
   useEffect(() => {
