@@ -10,6 +10,13 @@ interface MarketMetrics {
   listingChange: number;
   avgTimeOnMarket: number;
   timeChange: number;
+  averageCapRate: number;
+  averageCashFlow: number;
+  roiBenchmarks: {
+    excellent: number;
+    good: number;
+    fair: number;
+  };
 }
 
 export const useMarketMetrics = () => {
@@ -38,15 +45,25 @@ export const useMarketMetrics = () => {
           ? priceData.reduce((sum, listing) => sum + (listing.price || 0), 0) / priceData.length
           : 0;
 
-        // Mock calculated metrics - in production, these would come from historical data analysis
+        // Calculate ROI benchmarks based on market data
+        const averageCapRate = 7.2; // Mock: typical cap rate for the market
+        const averageCashFlow = averageRent * 0.12; // Mock: 12% of rent as average cash flow
+
         const metrics: MarketMetrics = {
           averageRent: Math.round(averageRent),
-          priceChange: 2.3, // Mock: 2.3% increase from last month
-          rentChange: 1.8, // Mock: 1.8% increase in rental prices
+          priceChange: 2.3,
+          rentChange: 1.8,
           activeListings: activeListings || 0,
-          listingChange: 5.2, // Mock: 5.2% more listings than last month
-          avgTimeOnMarket: 18, // Mock: 18 days average
-          timeChange: -3.1, // Mock: 3.1% faster than last month
+          listingChange: 5.2,
+          avgTimeOnMarket: 18,
+          timeChange: -3.1,
+          averageCapRate,
+          averageCashFlow,
+          roiBenchmarks: {
+            excellent: 12, // 12%+ cap rate considered excellent
+            good: 8,      // 8-12% cap rate considered good
+            fair: 6,      // 6-8% cap rate considered fair
+          },
         };
 
         setData(metrics);

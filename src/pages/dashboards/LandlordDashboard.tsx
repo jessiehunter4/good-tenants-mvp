@@ -7,6 +7,7 @@ import LandlordHeader from "@/components/landlord/LandlordHeader";
 import ProfileSummary from "@/components/landlord/ProfileSummary";
 import ListingsSection from "@/components/landlord/ListingsSection";
 import TenantDirectory from "@/components/landlord/tenant-directory";
+import ROICalculator from "@/components/analytics/ROICalculator";
 import { FeatureGate } from "@/components/access";
 import { useLandlordData } from "@/hooks/useLandlordData";
 import EmptyState from "@/components/tenant/EmptyState";
@@ -49,6 +50,7 @@ const LandlordDashboard = () => {
           <TabsList className="mb-4">
             <TabsTrigger value="tenants">Find Tenants</TabsTrigger>
             <TabsTrigger value="listings">My Properties</TabsTrigger>
+            <TabsTrigger value="roi-calculator">ROI Calculator</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tenants">
@@ -99,6 +101,10 @@ const LandlordDashboard = () => {
             <FeatureGate permission="manage_listings">
               <ListingsSection listings={listings} />
             </FeatureGate>
+          </TabsContent>
+
+          <TabsContent value="roi-calculator">
+            <ROICalculator />
           </TabsContent>
         </Tabs>
       </main>
