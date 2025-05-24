@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -15,18 +15,37 @@ import RegisterForm from "./RegisterForm";
 const AuthCard = () => {
   const [activeTab, setActiveTab] = useState("login");
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check for tab parameter in URL
     const searchParams = new URLSearchParams(location.search);
     const tabParam = searchParams.get("tab");
     
-    if (tabParam === "register") {
+    // Only update the tab if it's different from current state and is a valid tab
+    if (tabParam === "register" && activeTab !== "register") {
       setActiveTab("register");
-    } else {
+    } else if (!tabParam && activeTab !== "login") {
       setActiveTab("login");
     }
-  }, [location]);
+  }, [location.search, activeTab]);
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    
+    // Update URL to reflect the current tab
+    const searchParams = new URLSearchParams(location.search);
+    if (newTab === "register") {
+      searchParams.set("tab", "register");
+    } else {
+      searchParams.delete("tab");
+    }
+    
+    // Update URL without causing a full page reload
+    const newSearch = searchParams.toString();
+    const newPath = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+    navigate(newPath, { replace: true });
+  };
 
   return (
     <Card className="w-full max-w-md">
@@ -37,16 +56,16 @@ const AuthCard = () => {
         <CardTitle className="text-center">Welcome</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
           </TabsList>
           <TabsContent value="login">
-            <LoginForm setActiveTab={setActiveTab} />
+            <LoginForm setActiveTab={handleTabChange} />
           </TabsContent>
           <TabsContent value="register">
-            <RegisterForm setActiveTab={setActiveTab} />
+            <RegisterForm setActiveTab={handleTabChange} />
           </TabsContent>
         </Tabs>
       </CardContent>
