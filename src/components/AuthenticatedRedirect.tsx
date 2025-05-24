@@ -9,6 +9,7 @@ const AuthenticatedRedirect = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const hasRedirected = useRef(false);
+  const isProcessingLogin = useRef(false);
 
   // Define public routes that don't require authentication
   const publicRoutes = [
@@ -24,7 +25,9 @@ const AuthenticatedRedirect = () => {
 
   // Check if a user should be redirected to onboarding based on their role and profile status
   const checkAndRedirectToOnboarding = async (userId: string, userRole: string) => {
-    if (hasRedirected.current) return;
+    if (hasRedirected.current || isProcessingLogin.current) return;
+    
+    console.log('Checking redirect for user:', userId, 'role:', userRole);
     
     try {
       let profileTable = "";
@@ -41,6 +44,7 @@ const AuthenticatedRedirect = () => {
           break;
         case "admin":
           hasRedirected.current = true;
+          console.log('Redirecting admin to dashboard');
           navigate("/admin-dashboard");
           return;
         default:
@@ -64,6 +68,7 @@ const AuthenticatedRedirect = () => {
         // If profile exists and status is not 'incomplete', redirect to dashboard
         if (profileData && profileData.status && profileData.status !== "incomplete") {
           hasRedirected.current = true;
+          console.log('Redirecting to role dashboard:', userRole);
           navigate(`/dashboard-${userRole}`);
         } else {
           // If profile doesn't exist or is incomplete, redirect to onboarding
@@ -72,6 +77,7 @@ const AuthenticatedRedirect = () => {
       } else {
         // Default to dashboard if no specific role handling
         hasRedirected.current = true;
+        console.log('Redirecting to default dashboard');
         navigate("/dashboard");
       }
     } catch (error) {
@@ -83,9 +89,10 @@ const AuthenticatedRedirect = () => {
 
   // Navigate to the appropriate onboarding page
   const navigateToOnboarding = (role: string) => {
-    if (hasRedirected.current) return;
+    if (hasRedirected.current || isProcessingLogin.current) return;
     
     hasRedirected.current = true;
+    console.log('Redirecting to onboarding for role:', role);
     
     switch (role) {
       case "tenant":
@@ -104,28 +111,54 @@ const AuthenticatedRedirect = () => {
   };
 
   useEffect(() => {
-    // Reset redirect flag when component mounts
-    hasRedirected.current = false;
+    // Reset redirect flag when component mounts or route changes
+    if (location.pathname !== '/auth') {
+      hasRedirected.current = false;
+      isProcessingLogin.current = false;
+    }
+    
+    // Set processing flag when on auth page to prevent premature redirects
+    if (location.pathname === '/auth') {
+      isProcessingLogin.current = true;
+      // Clear the flag after a short delay to allow login to complete
+      const timer = setTimeout(() => {
+        isProcessingLogin.current = false;
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+    
+    console.log('AuthenticatedRedirect - user:', !!user, 'loading:', loading, 'route:', location.pathname, 'isPublic:', isPublicRoute);
     
     // CRITICAL FIX: Only redirect authenticated users who are NOT on public routes
-    if (!loading && user && !hasRedirected.current && !isPublicRoute) {
-      // Get user role from Supabase with a small delay to ensure auth context is stable
+    // and not currently processing a login
+    if (!loading && user && !hasRedirected.current && !isPublicRoute && !isProcessingLogin.current) {
+      console.log('Starting redirect process for authenticated user');
+      
+      // Get user role from Supabase with a delay to ensure auth context is stable
       const getUserRoleAndRedirect = async () => {
         try {
-          // Add a small delay to ensure auth state is fully settled
-          await new Promise(resolve => setTimeout(resolve, 100));
+          // Add a delay to ensure auth state is fully settled
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Double-check we're still in a valid state for redirect
+          if (hasRedirected.current || isProcessingLogin.current) {
+            console.log('Redirect cancelled - already redirected or processing login');
+            return;
+          }
           
           const role = await getUserRole();
+          console.log('Retrieved user role:', role);
           
-          if (role && !hasRedirected.current) {
+          if (role && !hasRedirected.current && !isProcessingLogin.current) {
             checkAndRedirectToOnboarding(user.id, role);
-          } else if (!hasRedirected.current) {
+          } else if (!hasRedirected.current && !isProcessingLogin.current) {
             hasRedirected.current = true;
+            console.log('No role found, redirecting to default dashboard');
             navigate("/dashboard");
           }
         } catch (error) {
           console.error("Error fetching user role:", error);
-          if (!hasRedirected.current) {
+          if (!hasRedirected.current && !isProcessingLogin.current) {
             hasRedirected.current = true;
             navigate("/dashboard");
           }

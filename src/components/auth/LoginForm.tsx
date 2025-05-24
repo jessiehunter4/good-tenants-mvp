@@ -5,6 +5,7 @@ import * as z from "zod";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 import {
   Form,
@@ -32,6 +33,7 @@ interface LoginFormProps {
 export const LoginForm = ({ setActiveTab }: LoginFormProps) => {
   const { signIn } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -45,8 +47,22 @@ export const LoginForm = ({ setActiveTab }: LoginFormProps) => {
   const onSubmit = async (values: LoginFormValues) => {
     try {
       setIsLoading(true);
+      console.log('Starting login process...');
+      
       await signIn(values.email, values.password);
-      // Redirection handled in Auth component's useEffect
+      
+      console.log('Login successful, showing success message');
+      toast({
+        title: "Login successful",
+        description: "Welcome back! Redirecting you now...",
+      });
+      
+      // Add a small delay before allowing redirect to ensure auth state is updated
+      setTimeout(() => {
+        console.log('Login process completed, auth context should handle redirect');
+        // The AuthenticatedRedirect component will handle the actual navigation
+      }, 1000);
+      
     } catch (error) {
       console.error("Login error:", error);
       toast({
