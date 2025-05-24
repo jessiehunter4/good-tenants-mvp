@@ -19,6 +19,9 @@ import OnboardLandlord from "./pages/onboarding/OnboardLandlord";
 import CreateProperty from "./pages/CreateProperty";
 import MessagingCenter from "./pages/messaging/MessagingCenter";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
+import TenantDashboard from "./pages/dashboards/TenantDashboard";
+import AgentDashboard from "./pages/dashboards/AgentDashboard";
+import LandlordDashboard from "./pages/dashboards/LandlordDashboard";
 import Index from "./pages/Index";
 
 import "./App.css";
@@ -44,6 +47,32 @@ function App() {
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
+            }
+          />
+
+          {/* Role-Specific Dashboard Routes */}
+          <Route
+            path="/dashboard-tenant"
+            element={
+              <RoleBasedRoute allowedRoles={["tenant"]}>
+                <TenantDashboard />
+              </RoleBasedRoute>
+            }
+          />
+          <Route
+            path="/dashboard-agent"
+            element={
+              <RoleBasedRoute allowedRoles={["agent"]}>
+                <AgentDashboard />
+              </RoleBasedRoute>
+            }
+          />
+          <Route
+            path="/dashboard-landlord"
+            element={
+              <RoleBasedRoute allowedRoles={["landlord"]}>
+                <LandlordDashboard />
+              </RoleBasedRoute>
             }
           />
 
