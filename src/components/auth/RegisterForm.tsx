@@ -55,64 +55,82 @@ export const RegisterForm = ({ setActiveTab }: RegisterFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showAdminCode, setShowAdminCode] = useState(false);
 
-  // Get role from URL query params
-  const queryParams = new URLSearchParams(location.search);
-  const roleFromUrl = queryParams.get("role");
-  
-  // Check for pre-filled values from sessionStorage
-  const [prefilledData, setPrefilledData] = useState<any>(null);
-  
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      role: "tenant",
+      adminCode: "",
+    },
+  });
+
+  // Single initialization effect to handle all pre-filled data and URL params
   useEffect(() => {
+    // Get role from URL query params
+    const queryParams = new URLSearchParams(location.search);
+    const roleFromUrl = queryParams.get("role");
+    
+    // Check for pre-filled values from sessionStorage
     const storedData = sessionStorage.getItem("prefilled_registration");
+    let prefilledData = null;
+    
     if (storedData) {
       try {
-        const parsedData = JSON.parse(storedData);
-        setPrefilledData(parsedData);
-        // Remove the data after retrieving it to prevent it from being used multiple times
+        prefilledData = JSON.parse(storedData);
+        // Remove the data after retrieving it
         sessionStorage.removeItem("prefilled_registration");
       } catch (error) {
         console.error("Error parsing prefilled registration data:", error);
       }
     }
-  }, []);
 
-  const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      email: prefilledData?.email || "",
-      password: "",
-      role: roleFromUrl as "tenant" | "agent" | "landlord" | "admin" || prefilledData?.role || "tenant",
-      adminCode: "",
-    },
-  });
-
-  // Update the form values when prefilledData is loaded
-  useEffect(() => {
+    // Set form values once during initialization
+    const updates: Partial<RegisterFormValues> = {};
+    
     if (prefilledData?.email) {
-      form.setValue('email', prefilledData.email);
+      updates.email = prefilledData.email;
     }
-    if (prefilledData?.role) {
-      form.setValue('role', prefilledData.role);
-    }
-  }, [prefilledData, form]);
-
-  // Update the role field in the form when the URL role parameter changes
-  useEffect(() => {
+    
+    // Prioritize URL role over prefilled role
     if (roleFromUrl) {
-      form.setValue('role', roleFromUrl as "tenant" | "agent" | "landlord");
+      updates.role = roleFromUrl as "tenant" | "agent" | "landlord" | "admin";
+    } else if (prefilledData?.role) {
+      updates.role = prefilledData.role;
     }
-  }, [roleFromUrl, form]);
+
+    // Apply all updates at once
+    if (Object.keys(updates).length > 0) {
+      Object.entries(updates).forEach(([key, value]) => {
+        form.setValue(key as keyof RegisterFormValues, value);
+      });
+    }
+
+    // Set admin code visibility based on initial role
+    const initialRole = updates.role || form.getValues('role');
+    setShowAdminCode(initialRole === 'admin');
+
+    // Store additional onboarding data if available
+    if (prefilledData && (prefilledData.name || prefilledData.phone || prefilledData.moveInDate || prefilledData.city)) {
+      sessionStorage.setItem("onboarding_data", JSON.stringify({
+        name: prefilledData.name,
+        phone: prefilledData.phone,
+        moveInDate: prefilledData.moveInDate,
+        city: prefilledData.city
+      }));
+    }
+  }, [location.search, form]);
 
   // Watch for role changes to show/hide admin code field
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (name === 'role' || name === undefined) {
+      if (name === 'role') {
         setShowAdminCode(value.role === 'admin');
       }
     });
     
     return () => subscription.unsubscribe();
-  }, [form.watch]);
+  }, [form]);
 
   const onSubmit = async (values: RegisterFormValues) => {
     try {
@@ -123,16 +141,6 @@ export const RegisterForm = ({ setActiveTab }: RegisterFormProps) => {
         description: "Please check your email to verify your account.",
       });
       setActiveTab("login");
-      
-      // Store additional user data for onboarding
-      if (prefilledData) {
-        sessionStorage.setItem("onboarding_data", JSON.stringify({
-          name: prefilledData.name,
-          phone: prefilledData.phone,
-          moveInDate: prefilledData.moveInDate,
-          city: prefilledData.city
-        }));
-      }
     } catch (error) {
       console.error("Registration error:", error);
       toast({

@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -37,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const isMounted = useRef(true);
 
   // Fetch user profile based on role
   const fetchUserProfile = async (userId: string, role: string): Promise<UserProfile | null> => {
@@ -90,45 +91,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Separate function to handle role and profile fetching
+  const handleUserRoleAndProfile = async (userId: string) => {
+    if (!isMounted.current) return;
+    
+    try {
+      const role = await getUserRole();
+      if (role && isMounted.current) {
+        const profile = await fetchUserProfile(userId, role);
+        if (isMounted.current) {
+          setUserProfile(profile);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user role and profile:', error);
+    }
+  };
+
   useEffect(() => {
-    // Set up auth state listener FIRST
+    isMounted.current = true;
+
+    // Set up auth state listener FIRST - only handle synchronous state updates
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, sessionData) => {
-        if (sessionData) {
-          setSession(sessionData);
-          setUser(sessionData.user);
-          
-          // Fetch user profile
-          const role = await getUserRole();
-          if (role) {
-            const profile = await fetchUserProfile(sessionData.user.id, role);
-            setUserProfile(profile);
-          }
-        } else {
-          setSession(null);
-          setUser(null);
+      (event, sessionData) => {
+        if (!isMounted.current) return;
+
+        // Only synchronous state updates here to prevent deadlock
+        setSession(sessionData);
+        setUser(sessionData?.user ?? null);
+        
+        // Clear profile when user logs out
+        if (!sessionData?.user) {
           setUserProfile(null);
+        }
+        
+        // Defer any Supabase calls using setTimeout to break the event loop
+        if (sessionData?.user) {
+          setTimeout(() => {
+            handleUserRoleAndProfile(sessionData.user.id);
+          }, 0);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(async ({ data: { session: sessionData } }) => {
+    supabase.auth.getSession().then(({ data: { session: sessionData } }) => {
+      if (!isMounted.current) return;
+      
       setSession(sessionData);
       setUser(sessionData?.user ?? null);
       
       if (sessionData?.user) {
-        const role = await getUserRole();
-        if (role) {
-          const profile = await fetchUserProfile(sessionData.user.id, role);
-          setUserProfile(profile);
-        }
+        // Defer this call as well
+        setTimeout(() => {
+          handleUserRoleAndProfile(sessionData.user.id);
+        }, 0);
       }
       
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted.current = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const getUserRole = async (): Promise<string | null> => {
