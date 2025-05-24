@@ -10,6 +10,7 @@ import { Upload, File, Check, X, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { uploadFile, generateUserFilePath } from "@/utils/storage";
 
 const documentTypes = [
   { value: 'income_verification', label: 'Income Verification' },
@@ -27,6 +28,8 @@ interface Document {
   file_url: string;
   verification_status: 'pending' | 'verified' | 'rejected';
   upload_date: string;
+  storage_path?: string;
+  bucket_id?: string;
 }
 
 interface DocumentUploadAreaProps {
@@ -59,21 +62,34 @@ const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
     try {
       setUploading(true);
 
-      // For demo purposes, we'll create a mock file URL
-      // In a real app, you'd upload to Supabase Storage
-      const mockFileUrl = `https://example.com/documents/${user.id}/${file.name}`;
+      // Generate storage path
+      const storagePath = generateUserFilePath(user.id, file.name);
+      
+      // Upload file to Supabase Storage
+      const { data: uploadData, error: uploadError } = await uploadFile(
+        'tenant-documents',
+        storagePath,
+        file
+      );
 
-      const { error } = await (supabase as any)
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Insert document record into database
+      const { error: dbError } = await supabase
         .from('application_documents')
         .insert({
           tenant_id: user.id,
           document_type: selectedType,
           file_name: file.name,
-          file_url: mockFileUrl,
-          file_size: file.size
+          file_url: `tenant-documents/${storagePath}`,
+          file_size: file.size,
+          storage_path: storagePath,
+          bucket_id: 'tenant-documents'
         });
 
-      if (error) throw error;
+      if (dbError) throw dbError;
 
       toast({
         title: "Document uploaded",
@@ -81,6 +97,9 @@ const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
       });
 
       setSelectedType("");
+      // Clear the file input
+      event.target.value = "";
+      
       if (onDocumentUploaded) onDocumentUploaded();
 
     } catch (error) {
