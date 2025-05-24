@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -13,38 +13,26 @@ import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 
 const AuthCard = () => {
-  const [activeTab, setActiveTab] = useState("login");
+  // Initialize state based on URL params to avoid useEffect on first render
   const location = useLocation();
-  const navigate = useNavigate();
+  const searchParams = new URLSearchParams(location.search);
+  const initialTab = searchParams.get("tab") === "register" ? "register" : "login";
+  
+  const [activeTab, setActiveTab] = useState(initialTab);
 
+  // Only listen to URL changes, not activeTab changes
   useEffect(() => {
-    // Check for tab parameter in URL
     const searchParams = new URLSearchParams(location.search);
     const tabParam = searchParams.get("tab");
     
-    // Only update the tab if it's different from current state and is a valid tab
-    if (tabParam === "register" && activeTab !== "register") {
-      setActiveTab("register");
-    } else if (!tabParam && activeTab !== "login") {
-      setActiveTab("login");
-    }
-  }, [location.search, activeTab]);
+    // Update tab based on URL without causing a loop
+    const newTab = tabParam === "register" ? "register" : "login";
+    setActiveTab(newTab);
+  }, [location.search]); // Remove activeTab from dependencies
 
+  // Simple tab change handler - no URL manipulation
   const handleTabChange = (newTab: string) => {
     setActiveTab(newTab);
-    
-    // Update URL to reflect the current tab
-    const searchParams = new URLSearchParams(location.search);
-    if (newTab === "register") {
-      searchParams.set("tab", "register");
-    } else {
-      searchParams.delete("tab");
-    }
-    
-    // Update URL without causing a full page reload
-    const newSearch = searchParams.toString();
-    const newPath = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
-    navigate(newPath, { replace: true });
   };
 
   return (
