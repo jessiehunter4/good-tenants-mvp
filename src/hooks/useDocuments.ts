@@ -2,18 +2,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import type { Tables } from "@/integrations/supabase/types";
 
-interface Document {
-  id: string;
-  document_type: string;
-  file_name: string;
-  file_url: string;
-  verification_status: 'pending' | 'verified' | 'rejected';
-  upload_date: string;
-  storage_path?: string;
-  bucket_id?: string;
-  file_size?: number;
-}
+// Use the actual database type from Supabase
+type Document = Tables<'application_documents'>;
 
 export const useDocuments = () => {
   const { user } = useAuth();

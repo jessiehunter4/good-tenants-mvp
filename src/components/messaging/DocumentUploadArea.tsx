@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadFile, generateUserFilePath } from "@/utils/storage";
+import type { Tables } from "@/integrations/supabase/types";
 
 const documentTypes = [
   { value: 'income_verification', label: 'Income Verification' },
@@ -21,16 +22,8 @@ const documentTypes = [
   { value: 'employment_letter', label: 'Employment Letter' }
 ];
 
-interface Document {
-  id: string;
-  document_type: string;
-  file_name: string;
-  file_url: string;
-  verification_status: 'pending' | 'verified' | 'rejected';
-  upload_date: string;
-  storage_path?: string;
-  bucket_id?: string;
-}
+// Use the actual database type from Supabase
+type Document = Tables<'application_documents'>;
 
 interface DocumentUploadAreaProps {
   documents: Document[];
