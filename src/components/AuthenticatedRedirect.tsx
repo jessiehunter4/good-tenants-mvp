@@ -10,6 +10,18 @@ const AuthenticatedRedirect = () => {
   const location = useLocation();
   const hasRedirected = useRef(false);
 
+  // Define public routes that don't require authentication
+  const publicRoutes = [
+    '/',
+    '/summer',
+    '/auth',
+    '/market-analytics',
+    '/index'
+  ];
+
+  // Check if current route is public
+  const isPublicRoute = publicRoutes.includes(location.pathname);
+
   // Check if a user should be redirected to onboarding based on their role and profile status
   const checkAndRedirectToOnboarding = async (userId: string, userRole: string) => {
     if (hasRedirected.current) return;
@@ -95,8 +107,8 @@ const AuthenticatedRedirect = () => {
     // Reset redirect flag when component mounts
     hasRedirected.current = false;
     
-    // Only redirect authenticated users who are NOT on the auth page
-    if (!loading && user && !hasRedirected.current && location.pathname !== '/auth') {
+    // CRITICAL FIX: Only redirect authenticated users who are NOT on public routes
+    if (!loading && user && !hasRedirected.current && !isPublicRoute) {
       // Get user role from Supabase with a small delay to ensure auth context is stable
       const getUserRoleAndRedirect = async () => {
         try {
@@ -122,7 +134,7 @@ const AuthenticatedRedirect = () => {
 
       getUserRoleAndRedirect();
     }
-  }, [user, loading, getUserRole, navigate, location.pathname]);
+  }, [user, loading, getUserRole, navigate, location.pathname, isPublicRoute]);
 
   return null; // This component doesn't render anything
 };
