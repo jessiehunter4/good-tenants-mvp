@@ -47,9 +47,17 @@ function App() {
             }
           />
 
-          {/* Admin Routes */}
+          {/* Admin Routes - Support both /admin and /admin-dashboard */}
           <Route
             path="/admin"
+            element={
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <AdminDashboard />
+              </RoleBasedRoute>
+            }
+          />
+          <Route
+            path="/admin-dashboard"
             element={
               <RoleBasedRoute allowedRoles={["admin"]}>
                 <AdminDashboard />
@@ -67,6 +75,14 @@ function App() {
             }
           />
           <Route
+            path="/onboard-tenant"
+            element={
+              <RoleBasedRoute allowedRoles={["tenant"]}>
+                <OnboardTenant />
+              </RoleBasedRoute>
+            }
+          />
+          <Route
             path="/onboarding/agent"
             element={
               <RoleBasedRoute allowedRoles={["agent"]}>
@@ -75,7 +91,23 @@ function App() {
             }
           />
           <Route
+            path="/onboard-agent"
+            element={
+              <RoleBasedRoute allowedRoles={["agent"]}>
+                <OnboardAgent />
+              </RoleBasedRoute>
+            }
+          />
+          <Route
             path="/onboarding/landlord"
+            element={
+              <RoleBasedRoute allowedRoles={["landlord"]}>
+                <OnboardLandlord />
+              </RoleBasedRoute>
+            }
+          />
+          <Route
+            path="/onboard-landlord"
             element={
               <RoleBasedRoute allowedRoles={["landlord"]}>
                 <OnboardLandlord />
