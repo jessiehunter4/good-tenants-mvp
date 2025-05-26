@@ -1,6 +1,5 @@
 
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -14,19 +13,6 @@ import RegisterForm from "./RegisterForm";
 
 const AuthCard = () => {
   const [activeTab, setActiveTab] = useState("login");
-  const location = useLocation();
-
-  useEffect(() => {
-    // Check for tab parameter in URL
-    const searchParams = new URLSearchParams(location.search);
-    const tabParam = searchParams.get("tab");
-    
-    if (tabParam === "register") {
-      setActiveTab("register");
-    } else {
-      setActiveTab("login");
-    }
-  }, [location]);
 
   return (
     <Card className="w-full max-w-md">
