@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -28,10 +27,9 @@ const MessageThreadEnhanced: React.FC<MessageThreadEnhancedProps> = ({ threadId 
   useEffect(() => {
     fetchMessages(threadId);
     
-    // Get user role
-    getUserRole().then(role => {
-      if (role) setUserRole(role);
-    });
+    // Get user role - getUserRole() returns a string directly, not a Promise
+    const role = getUserRole();
+    if (role) setUserRole(role);
     
     // Subscribe to real-time updates
     const unsubscribe = subscribeToThread(threadId, (newMessage) => {
