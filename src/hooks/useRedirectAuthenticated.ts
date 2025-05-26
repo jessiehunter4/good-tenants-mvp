@@ -9,7 +9,7 @@ export const useRedirectAuthenticated = () => {
 
   useEffect(() => {
     // Only redirect if user is already authenticated when the component mounts
-    // Don't interfere with fresh login flows
+    // Don't interfere with fresh login flows or sign-out processes
     if (user) {
       console.log("useRedirectAuthenticated: User is authenticated:", user.id);
       
@@ -49,6 +49,9 @@ export const useRedirectAuthenticated = () => {
         console.log("No role found, redirecting to general dashboard");
         navigate("/dashboard");
       }
+    } else {
+      // User is not authenticated, no redirection needed
+      console.log("useRedirectAuthenticated: User is not authenticated, no redirect needed");
     }
   }, [user, navigate, getUserRole]);
 
