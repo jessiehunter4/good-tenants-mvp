@@ -90,7 +90,7 @@ const VERIFICATION_STATUS: VerificationStatus = {
 };
 
 export const useRolePermissions = () => {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, getUserRole } = useAuth();
   const [role, setRole] = useState<RoleType>("tenant");
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [tier, setTier] = useState<AccessTier>("basic");
@@ -99,29 +99,38 @@ export const useRolePermissions = () => {
 
   useEffect(() => {
     setLoading(true);
-    if (user?.role) {
-      const userRole = user.role as RoleType;
-      setRole(userRole);
+    
+    if (user) {
+      // Get role from user metadata instead of making async calls
+      const userRole = getUserRole() as RoleType;
+      
+      if (userRole) {
+        setRole(userRole);
 
-      // Set permissions based on role
-      const rolePerms = ROLE_PERMISSIONS[userRole]?.permissions || [];
-      setPermissions(rolePerms);
+        // Set permissions based on role
+        const rolePerms = ROLE_PERMISSIONS[userRole]?.permissions || [];
+        setPermissions(rolePerms);
 
-      // Determine tier based on profile status
-      if (userProfile?.status) {
-        const profileStatus = userProfile.status;
-        if (profileStatus === "premium") {
-          setTier("premium");
-        } else if (profileStatus === "verified") {
-          setTier("verified");
+        // Determine tier based on profile status
+        if (userProfile?.status) {
+          const profileStatus = userProfile.status;
+          if (profileStatus === "premium") {
+            setTier("premium");
+          } else if (profileStatus === "verified") {
+            setTier("verified");
+          } else {
+            setTier("basic");
+          }
+          setIsVerified(VERIFICATION_STATUS[profileStatus] || false);
         } else {
           setTier("basic");
+          setIsVerified(false);
         }
-        setIsVerified(VERIFICATION_STATUS[profileStatus] || false);
       }
     }
+    
     setLoading(false);
-  }, [user, userProfile]);
+  }, [user, userProfile, getUserRole]);
 
   const canAccess = (permission: Permission): boolean => {
     return permissions.includes(permission);

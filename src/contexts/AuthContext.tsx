@@ -23,7 +23,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, role: string, adminCode?: string) => Promise<void>;
   signOut: () => Promise<void>;
-  getUserRole: () => Promise<string | null>;
+  getUserRole: () => string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,7 +38,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Fetch user profile based on role
+  // Get role from user metadata (stored during signup)
+  const getUserRole = (): string | null => {
+    if (!user) return null;
+    return user.user_metadata?.role || null;
+  };
+
+  // Fetch user profile based on role - moved outside useEffect to prevent deadlock
   const fetchUserProfile = async (userId: string, role: string): Promise<UserProfile | null> => {
     try {
       switch (role) {
@@ -91,37 +97,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Set up auth state listener FIRST - no async operations here to prevent deadlock
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, sessionData) => {
-        if (sessionData) {
-          setSession(sessionData);
-          setUser(sessionData.user);
-          
-          // Fetch user profile
-          const role = await getUserRole();
+      (event, sessionData) => {
+        console.log('Auth state change:', event, sessionData?.user?.id);
+        
+        // Only synchronous state updates here
+        setSession(sessionData);
+        setUser(sessionData?.user ?? null);
+        
+        // Defer any Supabase calls to prevent deadlock
+        if (sessionData?.user) {
+          const role = sessionData.user.user_metadata?.role;
           if (role) {
-            const profile = await fetchUserProfile(sessionData.user.id, role);
-            setUserProfile(profile);
+            setTimeout(() => {
+              fetchUserProfile(sessionData.user.id, role).then(profile => {
+                setUserProfile(profile);
+              });
+            }, 0);
           }
         } else {
-          setSession(null);
-          setUser(null);
           setUserProfile(null);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(async ({ data: { session: sessionData } }) => {
+    supabase.auth.getSession().then(({ data: { session: sessionData } }) => {
+      console.log('Initial session check:', sessionData?.user?.id);
       setSession(sessionData);
       setUser(sessionData?.user ?? null);
       
       if (sessionData?.user) {
-        const role = await getUserRole();
+        const role = sessionData.user.user_metadata?.role;
         if (role) {
-          const profile = await fetchUserProfile(sessionData.user.id, role);
-          setUserProfile(profile);
+          fetchUserProfile(sessionData.user.id, role).then(profile => {
+            setUserProfile(profile);
+          });
         }
       }
       
@@ -130,28 +142,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const getUserRole = async (): Promise<string | null> => {
-    if (!user) return null;
-    
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-      
-      if (error) {
-        console.error("Error fetching user role:", error);
-        return null;
-      }
-      
-      return data?.role || null;
-    } catch (error) {
-      console.error("Error in getUserRole:", error);
-      return null;
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     try {

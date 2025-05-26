@@ -81,25 +81,16 @@ export const useRedirectAuthenticated = () => {
 
   useEffect(() => {
     if (user) {
-      // Get user role from Supabase
-      const getUserRoleAndRedirect = async () => {
-        try {
-          const role = await getUserRole();
-          
-          if (role) {
-            checkAndRedirectToOnboarding(user.id, role);
-          } else {
-            navigate("/dashboard");
-          }
-        } catch (error) {
-          console.error("Error fetching user role:", error);
-          navigate("/dashboard");
-        }
-      };
-
-      getUserRoleAndRedirect();
+      // Get user role from metadata (no async call needed)
+      const role = getUserRole();
+      
+      if (role) {
+        checkAndRedirectToOnboarding(user.id, role);
+      } else {
+        navigate("/dashboard");
+      }
     }
-  }, [user]);
+  }, [user, navigate, getUserRole]);
 
   return { user };
 };
