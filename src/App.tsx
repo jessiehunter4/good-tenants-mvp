@@ -2,7 +2,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "./components/ui/toaster";
-import AuthenticatedRedirect from "./components/AuthenticatedRedirect";
 
 import LandingPage from "./pages/LandingPage";
 import SummerLandingPage from "./pages/SummerLandingPage";
@@ -31,7 +30,6 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <AuthenticatedRedirect />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
@@ -141,7 +139,7 @@ function App() {
             path="/onboard-landlord"
             element={
               <RoleBasedRoute allowedRoles={["landlord"]}>
-                <LandlordDashboard />
+                <OnboardLandlord />
               </RoleBasedRoute>
             }
           />

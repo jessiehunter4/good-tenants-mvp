@@ -1,22 +1,15 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-/**
- * @deprecated This hook should not be used on the Auth page as it causes flickering.
- * Use the AuthenticatedRedirect component in App.tsx instead for proper routing.
- */
 export const useRedirectAuthenticated = () => {
-  const { user, getUserRole, loading } = useAuth();
+  const { user, getUserRole } = useAuth();
   const navigate = useNavigate();
-  const hasRedirected = useRef(false);
 
   // Check if a user should be redirected to onboarding based on their role and profile status
   const checkAndRedirectToOnboarding = async (userId: string, userRole: string) => {
-    if (hasRedirected.current) return;
-    
     try {
       let profileTable = "";
       
@@ -31,7 +24,6 @@ export const useRedirectAuthenticated = () => {
           profileTable = "landlord_profiles";
           break;
         case "admin":
-          hasRedirected.current = true;
           navigate("/admin-dashboard");
           return;
         default:
@@ -54,7 +46,6 @@ export const useRedirectAuthenticated = () => {
 
         // If profile exists and status is not 'incomplete', redirect to dashboard
         if (profileData && profileData.status && profileData.status !== "incomplete") {
-          hasRedirected.current = true;
           navigate(`/dashboard-${userRole}`);
         } else {
           // If profile doesn't exist or is incomplete, redirect to onboarding
@@ -62,22 +53,16 @@ export const useRedirectAuthenticated = () => {
         }
       } else {
         // Default to dashboard if no specific role handling
-        hasRedirected.current = true;
         navigate("/dashboard");
       }
     } catch (error) {
       console.error("Error in redirect logic:", error);
-      hasRedirected.current = true;
       navigate("/dashboard"); // Default fallback
     }
   };
 
   // Navigate to the appropriate onboarding page
   const navigateToOnboarding = (role: string) => {
-    if (hasRedirected.current) return;
-    
-    hasRedirected.current = true;
-    
     switch (role) {
       case "tenant":
         navigate("/onboard-tenant");
@@ -95,38 +80,26 @@ export const useRedirectAuthenticated = () => {
   };
 
   useEffect(() => {
-    // Reset redirect flag when component mounts
-    hasRedirected.current = false;
-    
-    // CRITICAL FIX: Only proceed if not loading AND user exists (authenticated)
-    // This prevents the hook from running on the Auth page for non-authenticated users
-    if (!loading && user && !hasRedirected.current) {
-      // Get user role from Supabase with a small delay to ensure auth context is stable
+    if (user) {
+      // Get user role from Supabase
       const getUserRoleAndRedirect = async () => {
         try {
-          // Add a small delay to ensure auth state is fully settled
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
           const role = await getUserRole();
           
-          if (role && !hasRedirected.current) {
+          if (role) {
             checkAndRedirectToOnboarding(user.id, role);
-          } else if (!hasRedirected.current) {
-            hasRedirected.current = true;
+          } else {
             navigate("/dashboard");
           }
         } catch (error) {
           console.error("Error fetching user role:", error);
-          if (!hasRedirected.current) {
-            hasRedirected.current = true;
-            navigate("/dashboard");
-          }
+          navigate("/dashboard");
         }
       };
 
       getUserRoleAndRedirect();
     }
-  }, [user, loading, getUserRole, navigate]);
+  }, [user]);
 
   return { user };
 };

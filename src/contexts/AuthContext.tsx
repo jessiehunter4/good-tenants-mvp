@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -20,10 +20,10 @@ interface AuthContextType {
   session: Session | null;
   userProfile: UserProfile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<User>;
+  signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, role: string, adminCode?: string) => Promise<void>;
   signOut: () => Promise<void>;
-  getUserRole: (userId?: string) => Promise<string | null>;
+  getUserRole: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,7 +37,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const isMounted = useRef(true);
 
   // Fetch user profile based on role
   const fetchUserProfile = async (userId: string, role: string): Promise<UserProfile | null> => {
@@ -91,81 +90,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Separate function to handle role and profile fetching
-  const handleUserRoleAndProfile = async (userId: string) => {
-    if (!isMounted.current) return;
-    
-    try {
-      const role = await getUserRole(userId);
-      if (role && isMounted.current) {
-        const profile = await fetchUserProfile(userId, role);
-        if (isMounted.current) {
-          setUserProfile(profile);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user role and profile:', error);
-    }
-  };
-
   useEffect(() => {
-    isMounted.current = true;
-
-    // Set up auth state listener FIRST - only handle synchronous state updates
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, sessionData) => {
-        if (!isMounted.current) return;
-
-        // Only synchronous state updates here to prevent deadlock
-        setSession(sessionData);
-        setUser(sessionData?.user ?? null);
-        
-        // Clear profile when user logs out
-        if (!sessionData?.user) {
+      async (event, sessionData) => {
+        if (sessionData) {
+          setSession(sessionData);
+          setUser(sessionData.user);
+          
+          // Fetch user profile
+          const role = await getUserRole();
+          if (role) {
+            const profile = await fetchUserProfile(sessionData.user.id, role);
+            setUserProfile(profile);
+          }
+        } else {
+          setSession(null);
+          setUser(null);
           setUserProfile(null);
-        }
-        
-        // Defer any Supabase calls using setTimeout to break the event loop
-        if (sessionData?.user) {
-          setTimeout(() => {
-            handleUserRoleAndProfile(sessionData.user.id);
-          }, 0);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: sessionData } }) => {
-      if (!isMounted.current) return;
-      
+    supabase.auth.getSession().then(async ({ data: { session: sessionData } }) => {
       setSession(sessionData);
       setUser(sessionData?.user ?? null);
       
       if (sessionData?.user) {
-        // Defer this call as well
-        setTimeout(() => {
-          handleUserRoleAndProfile(sessionData.user.id);
-        }, 0);
+        const role = await getUserRole();
+        if (role) {
+          const profile = await fetchUserProfile(sessionData.user.id, role);
+          setUserProfile(profile);
+        }
       }
       
       setLoading(false);
     });
 
-    return () => {
-      isMounted.current = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
-  const getUserRole = async (userId?: string): Promise<string | null> => {
-    const targetUserId = userId || user?.id;
-    if (!targetUserId) return null;
+  const getUserRole = async (): Promise<string | null> => {
+    if (!user) return null;
     
     try {
       const { data, error } = await supabase
         .from("users")
         .select("role")
-        .eq("id", targetUserId)
+        .eq("id", user.id)
         .single();
       
       if (error) {
@@ -180,26 +153,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signIn = async (email: string, password: string): Promise<User> => {
+  const signIn = async (email: string, password: string) => {
     try {
       // Validate email format
       if (!validateEmail(email)) {
         throw new Error("Invalid email format");
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) throw error;
-      
-      // Return the user from the session immediately
-      if (data.user) {
-        return data.user;
-      } else {
-        throw new Error("Login successful but no user data received");
-      }
     } catch (error: any) {
       toast({
         title: "Error signing in",

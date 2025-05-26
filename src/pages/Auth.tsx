@@ -1,9 +1,12 @@
 
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useRedirectAuthenticated } from "@/hooks/useRedirectAuthenticated";
 import AuthCard from "@/components/auth/AuthCard";
 
 const Auth = () => {
+  // This hook will handle all the redirect logic for authenticated users
+  useRedirectAuthenticated();
   const location = useLocation();
 
   // Process query parameters for pre-filled form data

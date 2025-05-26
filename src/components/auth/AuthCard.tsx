@@ -13,27 +13,20 @@ import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 
 const AuthCard = () => {
-  // Initialize state based on URL params to avoid useEffect on first render
+  const [activeTab, setActiveTab] = useState("login");
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const initialTab = searchParams.get("tab") === "register" ? "register" : "login";
-  
-  const [activeTab, setActiveTab] = useState(initialTab);
 
-  // Only listen to URL changes, not activeTab changes
   useEffect(() => {
+    // Check for tab parameter in URL
     const searchParams = new URLSearchParams(location.search);
     const tabParam = searchParams.get("tab");
     
-    // Update tab based on URL without causing a loop
-    const newTab = tabParam === "register" ? "register" : "login";
-    setActiveTab(newTab);
-  }, [location.search]); // Remove activeTab from dependencies
-
-  // Simple tab change handler - no URL manipulation
-  const handleTabChange = (newTab: string) => {
-    setActiveTab(newTab);
-  };
+    if (tabParam === "register") {
+      setActiveTab("register");
+    } else {
+      setActiveTab("login");
+    }
+  }, [location]);
 
   return (
     <Card className="w-full max-w-md">
@@ -44,16 +37,16 @@ const AuthCard = () => {
         <CardTitle className="text-center">Welcome</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
           </TabsList>
           <TabsContent value="login">
-            <LoginForm setActiveTab={handleTabChange} />
+            <LoginForm setActiveTab={setActiveTab} />
           </TabsContent>
           <TabsContent value="register">
-            <RegisterForm setActiveTab={handleTabChange} />
+            <RegisterForm setActiveTab={setActiveTab} />
           </TabsContent>
         </Tabs>
       </CardContent>
