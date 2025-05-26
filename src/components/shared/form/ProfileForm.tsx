@@ -25,8 +25,12 @@ import {
 import { DatePickerField } from "./fields/DatePickerField";
 import { CheckboxField } from "./fields/CheckboxField";
 import { CheckboxGroupField } from "./fields/CheckboxGroupField";
-import { RadioOption } from "./fields/RadioOption";
 import { RadioGroupField } from "./fields/RadioGroupField";
+
+export interface RadioOptionType {
+  value: string;
+  label: string;
+}
 
 export interface ProfileFormProps {
   title: string;
@@ -41,8 +45,9 @@ export interface ProfileFormProps {
     description?: string;
     placeholder?: string;
     type?: string;
-    component?: "input" | "textarea" | "custom";
+    component?: "input" | "textarea" | "custom" | "radio";
     customComponent?: ReactNode;
+    options?: RadioOptionType[];
   }[];
   submitButtonText?: string;
   cancelButtonText?: string;
@@ -86,6 +91,8 @@ const ProfileForm = ({
                             placeholder={field.placeholder}
                             {...fieldProps}
                           />
+                        ) : field.component === "radio" ? (
+                          <RadioGroupField field={fieldProps} options={field.options || []} />
                         ) : field.component === "custom" ? (
                           React.cloneElement(field.customComponent as React.ReactElement, { field: fieldProps })
                         ) : (
@@ -127,7 +134,6 @@ const ProfileForm = ({
 ProfileForm.DatePicker = DatePickerField;
 ProfileForm.Checkbox = CheckboxField;
 ProfileForm.CheckboxGroup = CheckboxGroupField;
-ProfileForm.RadioOption = RadioOption;
 ProfileForm.RadioGroup = RadioGroupField;
 
 export default ProfileForm;

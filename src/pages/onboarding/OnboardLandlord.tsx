@@ -55,7 +55,7 @@ const OnboardLandlord = () => {
     );
   };
 
-  // Define form fields for ProfileForm with proper literal type values
+  // Define form fields for ProfileForm with proper radio group structure
   const formFields = [
     {
       name: "property_count",
@@ -74,36 +74,34 @@ const OnboardLandlord = () => {
       name: "management_type",
       label: "Property Management",
       description: "How do you manage your properties?",
-      component: "custom" as const, // Using 'as const' to ensure literal type
-      customComponent: (
-        <div className="flex flex-col space-y-3">
-          <ProfileForm.RadioOption
-            value="self"
-            label="Self-managed properties"
-          />
-          <ProfileForm.RadioOption
-            value="company"
-            label="I use a property management company"
-          />
-          <ProfileForm.RadioOption
-            value="hybrid"
-            label="Hybrid approach (some self-managed, some with a company)"
-          />
-        </div>
-      ),
+      component: "radio" as const,
+      options: [
+        {
+          value: "self",
+          label: "Self-managed properties"
+        },
+        {
+          value: "company", 
+          label: "I use a property management company"
+        },
+        {
+          value: "hybrid",
+          label: "Hybrid approach (some self-managed, some with a company)"
+        }
+      ],
     },
     {
       name: "preferred_tenant_criteria",
       label: "Preferred Tenant Criteria",
       description: "What are you looking for in an ideal tenant?",
-      component: "textarea" as const, // Using 'as const' to ensure literal type
+      component: "textarea" as const,
       placeholder: "e.g. No smoking, minimum credit score, income requirements...",
     },
     {
       name: "bio",
       label: "About You",
       description: "Brief description about your property management philosophy.",
-      component: "textarea" as const, // Using 'as const' to ensure literal type
+      component: "textarea" as const,
       placeholder: "Tell us about yourself as a property owner...",
     },
   ];
