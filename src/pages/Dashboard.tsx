@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import DashboardLoader from "@/components/dashboard/DashboardLoader";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import DashboardHeader from "@/components/shared/DashboardHeader";
 import WelcomeCard from "@/components/dashboard/WelcomeCard";
 import DashboardTabs from "@/components/dashboard/DashboardTabs";
 
