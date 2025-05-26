@@ -2,91 +2,51 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 
 export const useRedirectAuthenticated = () => {
   const { user, getUserRole } = useAuth();
   const navigate = useNavigate();
 
-  // Check if a user should be redirected to onboarding based on their role and profile status
-  const checkAndRedirectToOnboarding = async (userId: string, userRole: string) => {
-    try {
-      let profileTable = "";
-      
-      switch (userRole) {
-        case "tenant":
-          profileTable = "tenant_profiles";
-          break;
-        case "agent":
-          profileTable = "realtor_profiles";
-          break;
-        case "landlord":
-          profileTable = "landlord_profiles";
-          break;
-        case "admin":
-          navigate("/admin-dashboard");
-          return;
-        default:
-          break;
-      }
-
-      if (profileTable) {
-        const { data: profileData, error } = await supabase
-          .from(profileTable as "tenant_profiles" | "realtor_profiles" | "landlord_profiles")
-          .select("status")
-          .eq("id", userId)
-          .single();
-
-        if (error) {
-          console.error("Error fetching profile:", error);
-          // If there's an error, default to sending to onboarding
-          navigateToOnboarding(userRole);
-          return;
-        }
-
-        // If profile exists and status is not 'incomplete', redirect to dashboard
-        if (profileData && profileData.status && profileData.status !== "incomplete") {
-          navigate(`/dashboard-${userRole}`);
-        } else {
-          // If profile doesn't exist or is incomplete, redirect to onboarding
-          navigateToOnboarding(userRole);
-        }
-      } else {
-        // Default to dashboard if no specific role handling
-        navigate("/dashboard");
-      }
-    } catch (error) {
-      console.error("Error in redirect logic:", error);
-      navigate("/dashboard"); // Default fallback
-    }
-  };
-
-  // Navigate to the appropriate onboarding page
-  const navigateToOnboarding = (role: string) => {
-    switch (role) {
-      case "tenant":
-        navigate("/onboard-tenant");
-        break;
-      case "agent":
-        navigate("/onboard-agent");
-        break;
-      case "landlord":
-        navigate("/onboard-landlord");
-        break;
-      default:
-        navigate("/dashboard");
-        break;
-    }
-  };
-
   useEffect(() => {
+    // Only redirect if user is already authenticated when the component mounts
+    // Don't interfere with fresh login flows
     if (user) {
+      console.log("useRedirectAuthenticated: User is authenticated:", user.id);
+      
+      // Check if this is from a fresh login by looking at sessionStorage
+      const isFromLogin = sessionStorage.getItem('fresh_login');
+      if (isFromLogin) {
+        console.log("Fresh login detected, clearing flag and skipping auto-redirect");
+        sessionStorage.removeItem('fresh_login');
+        return;
+      }
+
       // Get user role from metadata (no async call needed)
       const role = getUserRole();
+      console.log("useRedirectAuthenticated: User role:", role);
       
       if (role) {
-        checkAndRedirectToOnboarding(user.id, role);
+        // For authenticated users who are not from a fresh login,
+        // redirect them to their appropriate dashboard
+        switch (role) {
+          case "tenant":
+            navigate("/dashboard-tenant");
+            break;
+          case "agent":
+            navigate("/dashboard-agent");
+            break;
+          case "landlord":
+            navigate("/dashboard-landlord");
+            break;
+          case "admin":
+            navigate("/admin-dashboard");
+            break;
+          default:
+            navigate("/dashboard");
+            break;
+        }
       } else {
+        console.log("No role found, redirecting to general dashboard");
         navigate("/dashboard");
       }
     }

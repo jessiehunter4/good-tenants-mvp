@@ -14,33 +14,44 @@ const Dashboard = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const redirectBasedOnRole = async () => {
+    const redirectBasedOnRole = () => {
       if (!user) return;
 
       try {
-        // Fetch user role
-        const role = await getUserRole();
+        console.log("Dashboard: Redirecting based on role for user:", user.id);
+        
+        // Get user role from metadata (getUserRole returns string directly, not Promise)
+        const role = getUserRole();
+        console.log("Dashboard: User role:", role);
+        
         if (role) {
           // Redirect to role-specific dashboard
           switch (role) {
             case "tenant":
+              console.log("Redirecting to tenant dashboard");
               navigate("/dashboard-tenant");
               break;
             case "agent":
+              console.log("Redirecting to agent dashboard");
               navigate("/dashboard-agent");
               break;
             case "landlord":
+              console.log("Redirecting to landlord dashboard");
               navigate("/dashboard-landlord");
               break;
             case "admin":
+              console.log("Redirecting to admin dashboard");
               navigate("/admin-dashboard");
               break;
             default:
+              console.log("Unknown role, staying on general dashboard");
               break;
           }
+        } else {
+          console.log("No role found, staying on general dashboard");
         }
       } catch (error) {
-        console.error("Error fetching user role:", error);
+        console.error("Error in Dashboard redirect logic:", error);
         toast({
           title: "Error",
           description: "Failed to load your profile data.",

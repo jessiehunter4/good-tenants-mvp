@@ -3,8 +3,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 import {
   Form,
@@ -30,8 +32,9 @@ interface LoginFormProps {
 }
 
 export const LoginForm = ({ setActiveTab }: LoginFormProps) => {
-  const { signIn } = useAuth();
+  const { signIn, getUserRole } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -42,13 +45,126 @@ export const LoginForm = ({ setActiveTab }: LoginFormProps) => {
     },
   });
 
+  const handlePostLoginRedirect = async (userId: string, userRole: string) => {
+    console.log("Handling post-login redirect for:", userId, "with role:", userRole);
+    
+    try {
+      let profileTable = "";
+      
+      switch (userRole) {
+        case "tenant":
+          profileTable = "tenant_profiles";
+          break;
+        case "agent":
+          profileTable = "realtor_profiles";
+          break;
+        case "landlord":
+          profileTable = "landlord_profiles";
+          break;
+        case "admin":
+          console.log("Redirecting admin to dashboard");
+          navigate("/admin-dashboard");
+          return;
+        default:
+          console.log("Unknown role, redirecting to general dashboard");
+          navigate("/dashboard");
+          return;
+      }
+
+      if (profileTable) {
+        console.log("Checking profile in table:", profileTable);
+        const { data: profileData, error } = await supabase
+          .from(profileTable as "tenant_profiles" | "realtor_profiles" | "landlord_profiles")
+          .select("status")
+          .eq("id", userId)
+          .single();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+          // If there's an error, default to sending to onboarding
+          navigateToOnboarding(userRole);
+          return;
+        }
+
+        console.log("Profile data:", profileData);
+        
+        // If profile exists and status is not 'incomplete', redirect to dashboard
+        if (profileData && profileData.status && profileData.status !== "incomplete") {
+          console.log("Profile complete, redirecting to role dashboard");
+          navigate(`/dashboard-${userRole}`);
+        } else {
+          // If profile doesn't exist or is incomplete, redirect to onboarding
+          console.log("Profile incomplete, redirecting to onboarding");
+          navigateToOnboarding(userRole);
+        }
+      }
+    } catch (error) {
+      console.error("Error in post-login redirect logic:", error);
+      navigate("/dashboard"); // Default fallback
+    }
+  };
+
+  const navigateToOnboarding = (role: string) => {
+    console.log("Navigating to onboarding for role:", role);
+    switch (role) {
+      case "tenant":
+        navigate("/onboard-tenant");
+        break;
+      case "agent":
+        navigate("/onboard-agent");
+        break;
+      case "landlord":
+        navigate("/onboard-landlord");
+        break;
+      default:
+        navigate("/dashboard");
+        break;
+    }
+  };
+
   const onSubmit = async (values: LoginFormValues) => {
     try {
       setIsLoading(true);
+      console.log("Starting login process");
+      
+      // Set flag to indicate this is a fresh login
+      sessionStorage.setItem('fresh_login', 'true');
+      
       await signIn(values.email, values.password);
-      // Redirection handled in Auth component's useEffect
+      
+      // Wait a moment for auth state to update
+      setTimeout(async () => {
+        try {
+          // Get the current session to ensure we have the latest user data
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) throw error;
+          
+          if (session?.user) {
+            const role = session.user.user_metadata?.role;
+            console.log("User logged in successfully:", session.user.id, "role:", role);
+            
+            if (role) {
+              await handlePostLoginRedirect(session.user.id, role);
+            } else {
+              console.log("No role found, redirecting to general dashboard");
+              navigate("/dashboard");
+            }
+          } else {
+            console.error("No session found after login");
+          }
+        } catch (redirectError) {
+          console.error("Error during post-login redirect:", redirectError);
+          navigate("/dashboard"); // Fallback
+        } finally {
+          // Clear the fresh login flag after redirect
+          sessionStorage.removeItem('fresh_login');
+        }
+      }, 100);
+      
     } catch (error) {
       console.error("Login error:", error);
+      sessionStorage.removeItem('fresh_login'); // Clear flag on error
       toast({
         title: "Login failed",
         description: "Please check your credentials and try again.",

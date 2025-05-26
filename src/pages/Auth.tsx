@@ -1,12 +1,12 @@
 
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { useRedirectAuthenticated } from "@/hooks/useRedirectAuthenticated";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import AuthCard from "@/components/auth/AuthCard";
 
 const Auth = () => {
-  // This hook will handle all the redirect logic for authenticated users
-  useRedirectAuthenticated();
+  const { user, getUserRole } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
 
   // Process query parameters for pre-filled form data
@@ -36,6 +36,48 @@ const Auth = () => {
       );
     }
   }, [name, email, phone, moveInDate, city, role]);
+
+  // Handle authenticated users who access /auth directly
+  useEffect(() => {
+    if (user) {
+      console.log("Auth page: User is already authenticated, redirecting");
+      const userRole = getUserRole();
+      
+      if (userRole) {
+        switch (userRole) {
+          case "tenant":
+            navigate("/dashboard-tenant");
+            break;
+          case "agent":
+            navigate("/dashboard-agent");
+            break;
+          case "landlord":
+            navigate("/dashboard-landlord");
+            break;
+          case "admin":
+            navigate("/admin-dashboard");
+            break;
+          default:
+            navigate("/dashboard");
+            break;
+        }
+      } else {
+        navigate("/dashboard");
+      }
+    }
+  }, [user, getUserRole, navigate]);
+
+  // Don't show auth card if user is already authenticated
+  if (user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
+          <p className="mt-2 text-sm text-muted-foreground">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
