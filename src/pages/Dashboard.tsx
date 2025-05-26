@@ -9,7 +9,7 @@ import WelcomeCard from "@/components/dashboard/WelcomeCard";
 import DashboardTabs from "@/components/dashboard/DashboardTabs";
 
 const Dashboard = () => {
-  const { user, getUserRole } = useAuth();
+  const { user, getUserRole, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -69,7 +69,12 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader />
+      <DashboardHeader 
+        title="Dashboard"
+        subtitle="Welcome to Good Tenants"
+        email={user.email}
+        onSignOut={signOut}
+      />
       
       <main className="container mx-auto px-4 py-8">
         <WelcomeCard />
